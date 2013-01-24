@@ -1,0 +1,51 @@
+longest:  25 ms = 25 000 us
+shortest:  3 ms =  3 000 us
+
+2^8  = 256
+2^16 = 65 536
+
+20 MHz clock, possible prescales of 0, 8, 64, 256, 1024
+
+prescaler 0 @ 20MHz
+ticks per ms = 20 000
+  25 ms = 500 000
+   3 ms =  60 000
+
+25 ms / 1 cycle = (1/25) cycle / ms * 1000 ms / 1 s = (1000 / 25) cycle / 1 s =  40.0 Hz
+ 3 ms / 1 cycle = (1/3)  cycle / ms * 1000 ms / 1 s = (1000 / 3)  cycle / 1 s = 333.3 Hz
+
+20 000 000 cycles / 1 s * 1 s / 1000 ms * 25 ms = 
+20 000 cycles / 1 ms * 25 ms = 500 000 cycles
+
+prescaler 8 @ 20 MHz
+ticks per ms = 2 500
+  25 ms = 62 500
+   3 ms =  7 500
+
+prescaler 64 @ 20 MHz
+ticks per ms = 312.5
+  25 ms = 7 812.5
+   3 ms =   937.5
+
+prescaler 256 @ 20 MHz
+ticks per ms = 78.125
+  25 ms = 1 953.125
+   3 ms =   234.375
+
+prescaler 1024 @ 20 MHz
+
+
+20 000 000 cycles / 8 = 2 500 000 cycles
+2 500 000 cycles / 1 s * 1 s / 1000 ms * 25 ms 
+
+---
+unsigned long micros(void) {  
+return ( ( (timer0_overflow_count * 256UL) + TCNT0) * 64UL ) / (F_CPU / 1000000UL) ;
+
+}
+
+Target Timer Count = (1 / Target Frequency) / (1 / Timer Clock Frequency) - 1 
+
+Target Timer Count = (Input Frequency / Prescale) / Target Frequency - 1
+
+999999 cycles = ( 1 MHz / 1 cycles ) / (x - 1)

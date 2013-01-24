@@ -1,0 +1,19 @@
+1a yellow ---- 1b orange
+2a black  ---- 2b brown
+
+yellow + black @ gnd
++ to orange
++ to brown -> CCW
+
+orange + brown @ gnd
++ to yellow
++ to black -> CCW
+
+down CCW:
+---
+orange
+brown
+yellow
+black
+---
+up CW

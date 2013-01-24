@@ -1,0 +1,36 @@
+mine:
+         1 2 3 4 5 6 7 8
+coil A+  1 1 0 0 0 0 0 1
+coil B-  0 1 1 1 0 0 0 0
+coil A-  0 0 0 1 1 1 0 0
+coil B+  0 0 0 0 0 1 1 1
+ A       + +   - - -   +
+ B         - - -   + + +
+
+expanded spec:
+         2   3 4 5   6 7
+coil A+  1   1 0 0   0 1
+coil B-  0   1 1 1   0 0
+coil A-  0   1 1 1   0 0
+coil B+  0   0 0 1   1 1
+ A       +     - -     +
+ B           - -     + +
+
+spec, lshift:
+         1 2 3 4 5 6
+coil A+  1 1 0 0 0 1
+coil B-  0 1 1 1 0 0
+coil A-  0 1 1 1 0 0
+coil B+  0 0 0 1 1 1
+ A       +   - -   +
+ B         - -   + +
+
+spec:
+         1 2 3 4 5 6
+coil A+  1 1 1 0 0 0
+coil B-  0 0 1 1 1 0
+coil A-  0 0 1 1 1 0
+coil B+  1 0 0 0 1 1
+ A       + +   - - 
+ B       +   - -   +
+ 
