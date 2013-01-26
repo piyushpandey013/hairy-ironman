@@ -24,8 +24,12 @@ enum move_direction
 
 unsigned int accel_delay[] = { 3000, 1500, 1000, 800, 600 };
 
-unsigned int motorStateMap[] = {0x9, 0x1, 0x7, 0x6, 0xE, 0x8};
-unsigned int motorStates = 6;;
+unsigned int motorStateMap[] = { 10, 8, 9, 1, 5, 4, 6, 2 };
+unsigned int motorStates = 8;
+
+//The following is from the datasheet, and allows us to tie pins 2/3 together
+//unsigned int motorStateMap[] = {0x9, 0x1, 0x7, 0x6, 0xE, 0x8};
+//unsigned int motorStates = 6;;
 
 struct motor_controller
 {
@@ -64,20 +68,21 @@ void print_step_controller( struct step_controller* c );
 
 void print_step_controller( struct step_controller* c )
 {
-    char state;
+    char state = 'E';
     switch(c->state)
     {
         case STOPPED: state = 'S'; break;
         case ACCELERATING: state = 'A'; break;
         case DECELERATING: state = 'D'; break;
         case MAX: state = 'M'; break;
+        default: state = 'E'; break;
     }
     printf("%c %c @ %3d -> %3d, %d\n", (c->direction == UP ? 'U' : 'D'), state, c->current_pos, c->target_pos, c->velocity );
 }
 
 void advance_motor( struct motor_controller* m, enum move_direction d )
 {
-    m->state_index = (m->state_index + 1) % motorStates;
+    m->state_index = (m->state_index + (d == UP ? 1 : -1 )) % motorStates;
     m->motor_byte = motorStateMap[m->state_index];
 }
 
@@ -96,7 +101,7 @@ void step_timer_handle(struct step_controller* c, struct motor_controller* m)
         break;
 
         case ACCELERATING:
-            if (delta <= c->velocity)
+            if (delta <= (signed)c->velocity)
             {
                 // we're close to or past the target, so we start slowing down
                 c->state = DECELERATING;
@@ -111,7 +116,7 @@ void step_timer_handle(struct step_controller* c, struct motor_controller* m)
         break;
 
         case DECELERATING:
-            if (delta > c->velocity)
+            if (delta > (signed)c->velocity)
             {
                 // too far away, we need to speed up
                 c->state = ACCELERATING;
@@ -126,7 +131,7 @@ void step_timer_handle(struct step_controller* c, struct motor_controller* m)
         break;
 
         case MAX:
-            if (delta <= c->velocity)
+            if (delta <= (signed)c->velocity)
             {
                 c->state = DECELERATING;
                 c->velocity -= 1;
@@ -170,6 +175,7 @@ int main()
     struct step_controller c;
     struct motor_controller m;
     // initialize c
+    c.state = STOPPED;
     c.velocity = 0;
     c.current_pos = 0;
     c.target_pos = 0;
