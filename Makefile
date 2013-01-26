@@ -1,8 +1,10 @@
 TARGET = a.out
 LIBS = 
-CC = c99
-CFLAGS = -g -Wall -Wextra -Werror
-ARCH= -m32
+#CC = c99
+CC = avr-gcc
+CFLAGS = -std=c99 -g -Wall -Wextra -Werror
+#ARCH= -m32
+ARCH = -mmcu=atmega168
 
 .PHONY: default all clean
 
