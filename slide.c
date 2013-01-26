@@ -4,7 +4,7 @@
 #include <avr/io.h>
 
 #include "controller.h"
-#include "hardware.h"
+#include "platform.h"
 
 // This file provides an interface for controlling the "slide" of the pins
 
@@ -47,7 +47,7 @@ void initSliders()
     // initialize them such that they both remain unpowered
 }
 
-void slider1_timer_handler()
+void slider_timer_handler()
 {
     if (pwm1_slider.curr_pwm_subcycle != 0)
     {
@@ -63,7 +63,7 @@ void slider1_timer_handler()
 
     pwm1_slider.curr_slide_step += (pwm1_slider.slide_direction == UP ? 1 : -1);
     pwm1_slider.curr_pwm_subcycle = pwm1_slider.pwm_subcycles_per_step;
-    *(pwm1_slider.compare_reg) = PWMDAC_MAX / PWMDAC_STEPS * pwm1_slider.curr_slide_step; // set the compare register to the proportion needed
+    *(pwm1_slider.compare_reg) = PWMDAC_MAX * pwm1_slider.curr_slide_step / PWMDAC_STEPS; // set the compare register to the proportion needed
 }
 
 void startSlide( struct pwm_slider* slider, enum move_direction m, uint16_t duration_us )

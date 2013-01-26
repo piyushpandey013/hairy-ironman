@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "controller.h"
-#include "hardware.h"
+#include "platform.h"
 
 unsigned int timer_prescale = 8;
 
