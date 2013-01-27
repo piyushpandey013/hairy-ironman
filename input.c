@@ -17,6 +17,7 @@ void initInput()
     // init ADC
     // free-running mode
     // some "reasonable" speed
+    // default values to 0
 }
 
 angle_t reading_to_angle( adc_t reading )

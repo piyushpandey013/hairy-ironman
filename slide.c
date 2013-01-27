@@ -5,11 +5,9 @@
 
 #include "controller.h"
 #include "platform.h"
+#include "slide.h"
 
 // This file provides an interface for controlling the "slide" of the pins
-
-typedef uint8_t pin_t;
-typedef uint16_t ticks_t;
 
 const uint8_t PWMDAC_MAX = 0xFF; // the value that causes the PWM or DAC to reach 100%
 const uint8_t PWMDAC_MIN = 0x00; // the value that causes the PWM or DAC to reach 0%

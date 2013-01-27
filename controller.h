@@ -51,9 +51,10 @@ struct step_controller
     enum control_state state;
     steps_t current_pos;
     steps_t target_pos;
-    unsigned int current_delay;
+    //unsigned int current_delay;
     unsigned int num_accel_steps;
     unsigned int velocity;
+    bool needs_update;
 };
 
 
@@ -62,11 +63,7 @@ struct step_controller
 extern struct step_controller  SControl;
 extern struct motor_controller MControl;
 
-uint32_t ms_to_ticks( unsigned int delay_ms );
-
-void set_stepper_target(struct step_controller* c, steps_t target_pos );
-
-void step_timer_handle(struct step_controller* c, struct motor_controller* m);
+void initController(void);
 
 void advance_motor( struct motor_controller* m, enum move_direction d );
 
@@ -74,4 +71,5 @@ void print_step_controller( struct step_controller* c );
 
 void set_gauge_target( struct step_controller* c, angle_t target_angle );
 
+void controller_thread();
 #endif
