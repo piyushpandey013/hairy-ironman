@@ -8,8 +8,9 @@
 
 unsigned int timer_prescale = 8;
 
-unsigned int motor_steps = 270 * 3;
-unsigned int motor_sweep_deg = 270;
+#define MOTOR_SWEEP_DEG 270 // whole degrees only, please
+angle_t motor_sweep_deg = MOTOR_SWEEP_DEG << 4;                 // shift to [1/10/4] format
+steps_t motor_steps     = (MOTOR_SWEEP_DEG * 3); // full-step is 1/3 degree; multiply and shift to integer format
 
 unsigned int step_target_register;
 
@@ -22,6 +23,10 @@ unsigned int motorStates = 8;
 //unsigned int motorStateMap[] = {0x9, 0x1, 0x7, 0x6, 0xE, 0x8};
 //unsigned int motorStates = 6;;
 
+struct step_controller SControl;
+struct motor_controller MControl;
+
+steps_t angle_to_steps( angle_t target_angle );
 
 void print_step_controller( struct step_controller* c )
 {
@@ -107,7 +112,7 @@ void step_timer_handle(struct step_controller* c, struct motor_controller* m)
     }
 }
 
-void set_stepper_target(struct step_controller* c, unsigned int target_pos )
+void set_stepper_target(struct step_controller* c, steps_t target_pos )
 {
     if (target_pos == c->target_pos)
         return; // no action required
@@ -124,3 +129,21 @@ uint32_t ms_to_ticks( unsigned int delay_ms )
     return delay_ms * ticks_per_ms;
 }
 
+void set_gauge_target( struct step_controller* c, angle_t target_angle )
+{
+    steps_t target_pos = angle_to_steps( target_angle );
+    set_stepper_target( c, target_pos );
+}
+
+steps_t angle_to_steps( angle_t target_angle )
+{
+    steps_t target_pos;
+    if (target_angle > motor_sweep_deg)
+        target_pos = motor_steps; // gracefully handle overflow
+
+    //                             [1/10/4]   *            [0/16/0] = [1/26/4] /            [1/10/4]     = [1/30/0]
+    int32_t workspace = (int32_t)target_angle * (int32_t)motor_steps           / (int32_t)motor_sweep_deg;
+
+    // the result is normalized by the ratio target_angle/motor_sweep_deg, so the can drop the high bits
+    return (steps_t)workspace;
+}

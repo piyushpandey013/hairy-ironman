@@ -6,8 +6,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-extern unsigned int motor_steps;
-extern unsigned int motor_sweep_deg;
+typedef  int16_t angle_t; // Fixed-point 1/10/4 angle measurement, good for values of [-1024,1024]
+typedef uint16_t steps_t; // Integer number of steps
+
+extern steps_t motor_steps;
+extern angle_t motor_sweep_deg;
 
 extern unsigned int step_target_register;
 
@@ -46,8 +49,8 @@ struct step_controller
 {
     enum move_direction direction;
     enum control_state state;
-    unsigned int current_pos;
-    unsigned int target_pos;
+    steps_t current_pos;
+    steps_t target_pos;
     unsigned int current_delay;
     unsigned int num_accel_steps;
     unsigned int velocity;
@@ -56,14 +59,19 @@ struct step_controller
 
 // Declarations
 
+extern struct step_controller  SControl;
+extern struct motor_controller MControl;
+
 uint32_t ms_to_ticks( unsigned int delay_ms );
 
-void set_stepper_target(struct step_controller* c, unsigned int target_pos );
+void set_stepper_target(struct step_controller* c, steps_t target_pos );
 
 void step_timer_handle(struct step_controller* c, struct motor_controller* m);
 
 void advance_motor( struct motor_controller* m, enum move_direction d );
 
 void print_step_controller( struct step_controller* c );
+
+void set_gauge_target( struct step_controller* c, angle_t target_angle );
 
 #endif
