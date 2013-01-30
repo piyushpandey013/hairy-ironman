@@ -16,4 +16,6 @@ static const uint32_t cpu_clocks_per_ms = f_cpu / 1000;
 #define cpu_clocks_per_us f_cpu / 1000000
 #define cpu_clocks_per_ms f_cpu / 1000
 
+void usb_workaround(void);
+
 #endif

@@ -9,6 +9,8 @@ typedef uint16_t adc_t; // 10-bit ADC storage
 
 void initInput();
 
+void input_thread();
+
 extern volatile adc_t adc_reading;
 
 extern volatile bool adc_changed;

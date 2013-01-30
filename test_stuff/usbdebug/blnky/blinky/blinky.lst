@@ -1,0 +1,740 @@
+   1               		.file	"blinky.c"
+   2               	__SREG__ = 0x3f
+   3               	__SP_H__ = 0x3e
+   4               	__SP_L__ = 0x3d
+   5               	__CCP__ = 0x34
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.global __do_copy_data
+   9               		.global __do_clear_bss
+  10               		.text
+  11               	.Ltext0:
+  12               		.cfi_sections	.debug_frame
+  13               		.section	.text.morse_character,"ax",@progbits
+  14               	.global	morse_character
+  16               	morse_character:
+  17               	.LFB8:
+  18               		.file 1 "blinky.c"
+   1:blinky.c      **** /* LED Blink Example with USB Debug Channel for Teensy USB Development Board
+   2:blinky.c      ****  * http://www.pjrc.com/teensy/
+   3:blinky.c      ****  * Copyright (c) 2008, 2010 PJRC.COM, LLC
+   4:blinky.c      ****  * 
+   5:blinky.c      ****  * Permission is hereby granted, free of charge, to any person obtaining a copy
+   6:blinky.c      ****  * of this software and associated documentation files (the "Software"), to deal
+   7:blinky.c      ****  * in the Software without restriction, including without limitation the rights
+   8:blinky.c      ****  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   9:blinky.c      ****  * copies of the Software, and to permit persons to whom the Software is
+  10:blinky.c      ****  * furnished to do so, subject to the following conditions:
+  11:blinky.c      ****  * 
+  12:blinky.c      ****  * The above copyright notice and this permission notice shall be included in
+  13:blinky.c      ****  * all copies or substantial portions of the Software.
+  14:blinky.c      ****  * 
+  15:blinky.c      ****  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  16:blinky.c      ****  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  17:blinky.c      ****  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  18:blinky.c      ****  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  19:blinky.c      ****  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  20:blinky.c      ****  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  21:blinky.c      ****  * THE SOFTWARE.
+  22:blinky.c      ****  */
+  23:blinky.c      **** 
+  24:blinky.c      **** #include <avr/io.h>
+  25:blinky.c      **** #include <avr/pgmspace.h>
+  26:blinky.c      **** #include <util/delay.h>
+  27:blinky.c      **** #include "usb_debug_only.h"
+  28:blinky.c      **** #include "print.h"
+  29:blinky.c      **** 
+  30:blinky.c      **** 
+  31:blinky.c      **** // Teensy 2.0: LED is active high
+  32:blinky.c      **** #if defined(__AVR_ATmega32U4__) || defined(__AVR_AT90USB1286__)
+  33:blinky.c      **** #define LED_ON		(PORTD |= (1<<6))
+  34:blinky.c      **** #define LED_OFF		(PORTD &= ~(1<<6))
+  35:blinky.c      **** 
+  36:blinky.c      **** // Teensy 1.0: LED is active low
+  37:blinky.c      **** #else
+  38:blinky.c      **** #define LED_ON	(PORTD &= ~(1<<6))
+  39:blinky.c      **** #define LED_OFF	(PORTD |= (1<<6))
+  40:blinky.c      **** #endif
+  41:blinky.c      **** 
+  42:blinky.c      **** #define LED_CONFIG	(DDRD |= (1<<6))
+  43:blinky.c      **** #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
+  44:blinky.c      **** #define DIT 80		/* unit time for morse code */
+  45:blinky.c      **** 
+  46:blinky.c      **** void morse_character(char c);
+  47:blinky.c      **** void morse_P(const char *s);
+  48:blinky.c      **** const unsigned char morse_code_table[];
+  49:blinky.c      **** 
+  50:blinky.c      **** 
+  51:blinky.c      **** int main(void)
+  52:blinky.c      **** {
+  53:blinky.c      **** 	unsigned char i;
+  54:blinky.c      **** 
+  55:blinky.c      **** 	// set for 16 MHz clock, and make sure the LED is off
+  56:blinky.c      **** 	CPU_PRESCALE(0);
+  57:blinky.c      **** 	LED_CONFIG;
+  58:blinky.c      **** 	LED_OFF;
+  59:blinky.c      **** 
+  60:blinky.c      **** 	// initialize the USB, but don't want for the host to
+  61:blinky.c      **** 	// configure.  The first several messages sent will be
+  62:blinky.c      **** 	// lost because the PC hasn't configured the USB yet,
+  63:blinky.c      **** 	// but we care more about blinking than debug messages!
+  64:blinky.c      **** 	usb_init();
+  65:blinky.c      **** 
+  66:blinky.c      **** 	// blink morse code messages!
+  67:blinky.c      **** 	while (1) {
+  68:blinky.c      **** 		for (i=0; i<6; i++) {
+  69:blinky.c      **** 			morse_P(PSTR("SOS"));
+  70:blinky.c      **** 			_delay_ms(1500);
+  71:blinky.c      **** 		}
+  72:blinky.c      **** 		morse_P(PSTR("DOES ANYBODY STILL KNOW MORSE CODE?"));
+  73:blinky.c      **** 		_delay_ms(4000);
+  74:blinky.c      **** 	}
+  75:blinky.c      **** }
+  76:blinky.c      **** 
+  77:blinky.c      **** // blink a single character in Morse code
+  78:blinky.c      **** void morse_character(char c)
+  79:blinky.c      **** {
+  19               		.loc 1 79 0
+  20               		.cfi_startproc
+  21               	.LVL0:
+  22 0000 CF93      		push r28
+  23               	.LCFI0:
+  24               		.cfi_def_cfa_offset 3
+  25               		.cfi_offset 28, -2
+  26 0002 DF93      		push r29
+  27               	.LCFI1:
+  28               		.cfi_def_cfa_offset 4
+  29               		.cfi_offset 29, -3
+  30               	/* prologue: function */
+  31               	/* frame size = 0 */
+  32               	/* stack size = 2 */
+  33               	.L__stack_usage = 2
+  34 0004 C82F      		mov r28,r24
+  80:blinky.c      **** 	unsigned char code, count;
+  81:blinky.c      **** 
+  82:blinky.c      **** 	if (c == ' ') {
+  35               		.loc 1 82 0
+  36 0006 8032      		cpi r24,lo8(32)
+  37 0008 01F4      		brne .L2
+  83:blinky.c      **** 		print("Space\n");
+  38               		.loc 1 83 0
+  39 000a 80E0      		ldi r24,lo8(__c.1590)
+  40 000c 90E0      		ldi r25,hi8(__c.1590)
+  41               	.LVL1:
+  42 000e 0E94 0000 		call print_P
+  43               	.LVL2:
+  44               	.LBB26:
+  45               	.LBB27:
+  46               		.file 2 "/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h"
+   1:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
+   3:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
+   4:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    All rights reserved.
+   5:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+   6:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
+   7:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
+   8:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+   9:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
+  10:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
+  11:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  12:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
+  13:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
+  14:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****      the documentation and/or other materials provided with the
+  15:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****      distribution.
+  16:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  17:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
+  18:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
+  19:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****      from this software without specific prior written permission.
+  20:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  21:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  22:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  23:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  24:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  25:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  26:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  27:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  30:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  31:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  32:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  33:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** /* $Id: delay.h.in 2251 2011-09-14 08:20:33Z joerg_wunsch $ */
+  34:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  35:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
+  36:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
+  37:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  38:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #ifndef __HAS_DELAY_CYCLES
+  39:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #define __HAS_DELAY_CYCLES 1
+  40:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #endif
+  41:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  42:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #include <inttypes.h>
+  43:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #include <util/delay_basic.h>
+  44:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #include <math.h>
+  45:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  46:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** /** \file */
+  47:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+  48:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     \code
+  49:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
+  50:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
+  51:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     #include <util/delay.h>
+  52:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     \endcode
+  53:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  54:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
+  55:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
+  56:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
+  57:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     used.
+  58:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  59:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
+  60:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
+  61:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     convenience functions where actual time values can be specified
+  62:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
+  63:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
+  64:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
+  65:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
+  66:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
+  67:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  68:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
+  69:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
+  70:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
+  71:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
+  72:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
+  73:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
+  74:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
+  75:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     routines linked into the application.
+  76:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  77:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
+  78:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
+  79:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
+  80:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  81:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** */
+  82:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  83:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
+  84:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** static inline void _delay_us(double __us) __attribute__((always_inline));
+  85:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** static inline void _delay_ms(double __ms) __attribute__((always_inline));
+  86:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #endif
+  87:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  88:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #ifndef F_CPU
+  89:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
+  90:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
+  91:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** # define F_CPU 1000000UL
+  92:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #endif
+  93:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  94:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #ifndef __OPTIMIZE__
+  95:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+  96:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #endif
+  97:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+  98:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+  99:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 100:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   __STDC_HOSTED__
+ 101:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #  include <math.h>
+ 102:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #endif
+ 103:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 104:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** /**
+ 105:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    \ingroup util_delay
+ 106:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 107:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+ 108:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 109:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 110:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 111:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 112:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
+ 113:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 114:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
+ 115:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
+ 116:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
+ 117:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
+ 118:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    user will not be informed about decreased resolution.
+ 119:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 120:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles(unsigned long)
+ 121:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+ 122:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
+ 123:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    no delay i.e., 0ms.
+ 124:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 125:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    Conversion of __us into clock cycles may not always result in integer.
+ 126:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    By default, the clock cycles rounded up to next integer. This ensures that
+ 127:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    the user gets atleast __us microseconds of delay.
+ 128:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 129:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    Alternatively, user can define __DELAY_ROUND_DOWN__ and __DELAY_ROUND_CLOSEST__
+ 130:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    to round down and round to closest integer.
+ 131:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 132:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    Note: The new implementation of _delay_ms(double __ms) with 
+ 133:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****     __builtin_avr_delay_cycles(unsigned long) support is not backward compatible. 
+ 134:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    User can define __DELAY_BACKWARD_COMPATIBLE__ to get a backward compatible delay.
+ 135:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    Also, the backward compatible
+ 136:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    algorithm will be chosen if the code is compiled in a <em>freestanding
+ 137:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    environment</em> (GCC option \c -ffreestanding), as the math functions
+ 138:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****    required for rounding are not available to the compiler then.
+ 139:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 140:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****  */
+ 141:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** void
+ 142:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** _delay_ms(double __ms)
+ 143:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** {
+ 144:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	uint16_t __ticks;
+ 145:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	double __tmp ; 
+ 146:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 147:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 148:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h ****   __STDC_HOSTED__
+ 149:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 150:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 151:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
+ 152:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 153:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 154:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 155:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 156:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 157:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 158:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 159:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	#else
+ 160:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 		//round up by default
+ 161:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 162:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	#endif
+ 163:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 
+ 164:/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+  47               		.loc 2 164 0
+  48 0012 8FEF      		 ldi r24,lo8(1791999)
+  49 0014 97E5      	    ldi r25,hi8(1791999)
+  50 0016 ABE1      	    ldi r26,hlo8(1791999)
+  51 0018 8150      	    1:subi r24,1
+  52 001a 9040      	    sbci r25,0
+  53 001c A040      	    sbci r26,0
+  54 001e 01F4      	    brne 1b
+  55 0020 00C0      		rjmp .L10
+  56               	.LVL3:
+  57               	.L2:
+  58               	.LBE27:
+  59               	.LBE26:
+  84:blinky.c      **** 		_delay_ms(DIT * 7);
+  85:blinky.c      **** 		return;
+  86:blinky.c      **** 	}
+  87:blinky.c      **** 	if (c < 'A' || c > 'Z') {
+  60               		.loc 1 87 0
+  61 0022 8154      		subi r24,lo8(-(-65))
+  62 0024 8A31      		cpi r24,lo8(26)
+  63 0026 00F0      		brlo .L4
+  88:blinky.c      **** 		print("Opps, unsupported character: ");
+  64               		.loc 1 88 0
+  65 0028 80E0      		ldi r24,lo8(__c.1592)
+  66 002a 90E0      		ldi r25,hi8(__c.1592)
+  67 002c 0E94 0000 		call print_P
+  89:blinky.c      **** 		pchar(c);
+  68               		.loc 1 89 0
+  69 0030 8C2F      		mov r24,r28
+  70 0032 0E94 0000 		call usb_debug_putchar
+  90:blinky.c      **** 		print("\n");
+  71               		.loc 1 90 0
+  72 0036 80E0      		ldi r24,lo8(__c.1594)
+  73 0038 90E0      		ldi r25,hi8(__c.1594)
+  74 003a 0E94 0000 		call print_P
+  91:blinky.c      **** 		return;	
+  75               		.loc 1 91 0
+  76 003e 00C0      		rjmp .L1
+  77               	.L4:
+  92:blinky.c      **** 	}
+  93:blinky.c      **** 	print("Char ");
+  78               		.loc 1 93 0
+  79 0040 80E0      		ldi r24,lo8(__c.1596)
+  80 0042 90E0      		ldi r25,hi8(__c.1596)
+  81 0044 0E94 0000 		call print_P
+  94:blinky.c      **** 	pchar(c);
+  82               		.loc 1 94 0
+  83 0048 8C2F      		mov r24,r28
+  84 004a 0E94 0000 		call usb_debug_putchar
+  95:blinky.c      **** 	pchar(':');
+  85               		.loc 1 95 0
+  86 004e 8AE3      		ldi r24,lo8(58)
+  87 0050 0E94 0000 		call usb_debug_putchar
+  88               	.LVL4:
+  89               	.LBB28:
+  96:blinky.c      **** 	code = pgm_read_byte(morse_code_table + (c - 'A'));
+  90               		.loc 1 96 0
+  91 0054 EC2F      		mov r30,r28
+  92 0056 F0E0      		ldi r31,lo8(0)
+  93 0058 E050      		subi r30,lo8(-(morse_code_table-65))
+  94 005a F040      		sbci r31,hi8(-(morse_code_table-65))
+  95               	/* #APP */
+  96               	 ;  96 "blinky.c" 1
+  97 005c C491      		lpm r28, Z
+  98               		
+  99               	 ;  0 "" 2
+ 100               	.LVL5:
+ 101               	/* #NOAPP */
+ 102               	.LBE28:
+  97:blinky.c      **** 	for (count = code & 0x07; count > 0; count--) {
+ 103               		.loc 1 97 0
+ 104 005e DC2F      		mov r29,r28
+ 105 0060 D770      		andi r29,lo8(7)
+ 106               	.LVL6:
+ 107 0062 00C0      		rjmp .L5
+ 108               	.LVL7:
+ 109               	.L8:
+  98:blinky.c      **** 		LED_ON;
+ 110               		.loc 1 98 0
+ 111 0064 5E9A      		sbi 43-32,6
+  99:blinky.c      **** 		if (code & 0x80) {
+ 112               		.loc 1 99 0
+ 113 0066 C7FF      		sbrs r28,7
+ 114 0068 00C0      		rjmp .L6
+ 100:blinky.c      **** 			print(" dah");
+ 115               		.loc 1 100 0
+ 116 006a 80E0      		ldi r24,lo8(__c.1601)
+ 117 006c 90E0      		ldi r25,hi8(__c.1601)
+ 118 006e 0E94 0000 		call print_P
+ 119               	.LVL8:
+ 120               	.LBB29:
+ 121               	.LBB30:
+ 122               		.loc 2 164 0
+ 123 0072 8FEF      		 ldi r24,lo8(767999)
+ 124 0074 97EB      	    ldi r25,hi8(767999)
+ 125 0076 ABE0      	    ldi r26,hlo8(767999)
+ 126 0078 8150      	    1:subi r24,1
+ 127 007a 9040      	    sbci r25,0
+ 128 007c A040      	    sbci r26,0
+ 129 007e 01F4      	    brne 1b
+ 130 0080 00C0      		rjmp .L9
+ 131               	.LVL9:
+ 132               	.L6:
+ 133               	.LBE30:
+ 134               	.LBE29:
+ 101:blinky.c      **** 			_delay_ms(DIT * 3);
+ 102:blinky.c      **** 		} else {
+ 103:blinky.c      **** 			print(" dit");
+ 135               		.loc 1 103 0
+ 136 0082 80E0      		ldi r24,lo8(__c.1603)
+ 137 0084 90E0      		ldi r25,hi8(__c.1603)
+ 138 0086 0E94 0000 		call print_P
+ 139               	.LVL10:
+ 140               	.LBB31:
+ 141               	.LBB32:
+ 142               		.loc 2 164 0
+ 143 008a 8FEF      		 ldi r24,lo8(255999)
+ 144 008c 97EE      	    ldi r25,hi8(255999)
+ 145 008e A3E0      	    ldi r26,hlo8(255999)
+ 146 0090 8150      	    1:subi r24,1
+ 147 0092 9040      	    sbci r25,0
+ 148 0094 A040      	    sbci r26,0
+ 149 0096 01F4      	    brne 1b
+ 150               	.LVL11:
+ 151               	.L9:
+ 152 0098 00C0      		rjmp .
+ 153 009a 0000      		nop
+ 154               	.LBE32:
+ 155               	.LBE31:
+ 104:blinky.c      **** 			_delay_ms(DIT);
+ 105:blinky.c      **** 		}
+ 106:blinky.c      **** 		LED_OFF;
+ 156               		.loc 1 106 0
+ 157 009c 5E98      		cbi 43-32,6
+ 158               	.LVL12:
+ 159               	.LBB33:
+ 160               	.LBB34:
+ 161               		.loc 2 164 0
+ 162 009e 8FEF      		 ldi r24,lo8(255999)
+ 163 00a0 97EE      	    ldi r25,hi8(255999)
+ 164 00a2 A3E0      	    ldi r26,hlo8(255999)
+ 165 00a4 8150      	    1:subi r24,1
+ 166 00a6 9040      	    sbci r25,0
+ 167 00a8 A040      	    sbci r26,0
+ 168 00aa 01F4      	    brne 1b
+ 169 00ac 00C0      		rjmp .
+ 170 00ae 0000      		nop
+ 171               	.LBE34:
+ 172               	.LBE33:
+ 107:blinky.c      **** 		_delay_ms(DIT);
+ 108:blinky.c      **** 		code = code << 1;
+ 173               		.loc 1 108 0
+ 174 00b0 CC0F      		lsl r28
+ 175               	.LVL13:
+  97:blinky.c      **** 	for (count = code & 0x07; count > 0; count--) {
+ 176               		.loc 1 97 0
+ 177 00b2 D150      		subi r29,lo8(-(-1))
+ 178               	.LVL14:
+ 179               	.L5:
+  97:blinky.c      **** 	for (count = code & 0x07; count > 0; count--) {
+ 180               		.loc 1 97 0 is_stmt 0 discriminator 1
+ 181 00b4 DD23      		tst r29
+ 182 00b6 01F4      		brne .L8
+ 109:blinky.c      **** 	}
+ 110:blinky.c      **** 	print("\n");
+ 183               		.loc 1 110 0 is_stmt 1
+ 184 00b8 80E0      		ldi r24,lo8(__c.1608)
+ 185 00ba 90E0      		ldi r25,hi8(__c.1608)
+ 186 00bc 0E94 0000 		call print_P
+ 187               	.LVL15:
+ 188               	.LBB35:
+ 189               	.LBB36:
+ 190               		.loc 2 164 0
+ 191 00c0 8FEF      		 ldi r24,lo8(511999)
+ 192 00c2 9FEC      	    ldi r25,hi8(511999)
+ 193 00c4 A7E0      	    ldi r26,hlo8(511999)
+ 194 00c6 8150      	    1:subi r24,1
+ 195 00c8 9040      	    sbci r25,0
+ 196 00ca A040      	    sbci r26,0
+ 197 00cc 01F4      	    brne 1b
+ 198               	.LVL16:
+ 199               	.L10:
+ 200 00ce 00C0      		rjmp .
+ 201 00d0 0000      		nop
+ 202               	.L1:
+ 203               	/* epilogue start */
+ 204               	.LBE36:
+ 205               	.LBE35:
+ 111:blinky.c      **** 	_delay_ms(DIT * 2);
+ 112:blinky.c      **** }
+ 206               		.loc 1 112 0
+ 207 00d2 DF91      		pop r29
+ 208 00d4 CF91      		pop r28
+ 209 00d6 0895      		ret
+ 210               		.cfi_endproc
+ 211               	.LFE8:
+ 213               		.section	.text.morse_P,"ax",@progbits
+ 214               	.global	morse_P
+ 216               	morse_P:
+ 217               	.LFB9:
+ 113:blinky.c      **** 
+ 114:blinky.c      **** // blink an entire message in Morse code
+ 115:blinky.c      **** // the string must be in flash memory (using PSTR macro)
+ 116:blinky.c      **** void morse_P(const char *s)
+ 117:blinky.c      **** {
+ 218               		.loc 1 117 0
+ 219               		.cfi_startproc
+ 220               	.LVL17:
+ 221 0000 CF93      		push r28
+ 222               	.LCFI2:
+ 223               		.cfi_def_cfa_offset 3
+ 224               		.cfi_offset 28, -2
+ 225 0002 DF93      		push r29
+ 226               	.LCFI3:
+ 227               		.cfi_def_cfa_offset 4
+ 228               		.cfi_offset 29, -3
+ 229               	/* prologue: function */
+ 230               	/* frame size = 0 */
+ 231               	/* stack size = 2 */
+ 232               	.L__stack_usage = 2
+ 233 0004 EC01      		movw r28,r24
+ 234               	.LVL18:
+ 235               	.L13:
+ 236               	.LBB37:
+ 118:blinky.c      **** 	char c;
+ 119:blinky.c      **** 	
+ 120:blinky.c      **** 	while (1) {
+ 121:blinky.c      **** 		c = pgm_read_byte(s++);
+ 237               		.loc 1 121 0
+ 238 0006 FE01      		movw r30,r28
+ 239               	.LVL19:
+ 240 0008 2196      		adiw r28,1
+ 241               	.LVL20:
+ 242               	/* #APP */
+ 243               	 ;  121 "blinky.c" 1
+ 244 000a 8491      		lpm r24, Z
+ 245               		
+ 246               	 ;  0 "" 2
+ 247               	.LVL21:
+ 248               	/* #NOAPP */
+ 249               	.LBE37:
+ 122:blinky.c      **** 		if (!c) break;
+ 250               		.loc 1 122 0
+ 251 000c 8823      		tst r24
+ 252 000e 01F0      		breq .L12
+ 123:blinky.c      **** 		morse_character(c);
+ 253               		.loc 1 123 0
+ 254 0010 0E94 0000 		call morse_character
+ 255               	.LVL22:
+ 124:blinky.c      **** 	}
+ 256               		.loc 1 124 0
+ 257 0014 00C0      		rjmp .L13
+ 258               	.LVL23:
+ 259               	.L12:
+ 125:blinky.c      **** 	print("\n");
+ 260               		.loc 1 125 0
+ 261 0016 80E0      		ldi r24,lo8(__c.1619)
+ 262 0018 90E0      		ldi r25,hi8(__c.1619)
+ 263               	.LVL24:
+ 264 001a 0E94 0000 		call print_P
+ 265               	/* epilogue start */
+ 126:blinky.c      **** }
+ 266               		.loc 1 126 0
+ 267 001e DF91      		pop r29
+ 268 0020 CF91      		pop r28
+ 269               	.LVL25:
+ 270 0022 0895      		ret
+ 271               		.cfi_endproc
+ 272               	.LFE9:
+ 274               		.section	.text.startup.main,"ax",@progbits
+ 275               	.global	main
+ 277               	main:
+ 278               	.LFB7:
+  52:blinky.c      **** {
+ 279               		.loc 1 52 0
+ 280               		.cfi_startproc
+ 281               	/* prologue: function */
+ 282               	/* frame size = 0 */
+ 283               	/* stack size = 0 */
+ 284               	.L__stack_usage = 0
+  56:blinky.c      **** 	CPU_PRESCALE(0);
+ 285               		.loc 1 56 0
+ 286 0000 80E8      		ldi r24,lo8(-128)
+ 287 0002 8093 6100 		sts 97,r24
+ 288 0006 1092 6100 		sts 97,__zero_reg__
+  57:blinky.c      **** 	LED_CONFIG;
+ 289               		.loc 1 57 0
+ 290 000a 569A      		sbi 42-32,6
+  58:blinky.c      **** 	LED_OFF;
+ 291               		.loc 1 58 0
+ 292 000c 5E98      		cbi 43-32,6
+  64:blinky.c      **** 	usb_init();
+ 293               		.loc 1 64 0
+ 294 000e 0E94 0000 		call usb_init
+  68:blinky.c      **** 		for (i=0; i<6; i++) {
+ 295               		.loc 1 68 0
+ 296 0012 C0E0      		ldi r28,lo8(0)
+ 297 0014 00C0      		rjmp .L18
+ 298               	.L16:
+  69:blinky.c      **** 			morse_P(PSTR("SOS"));
+ 299               		.loc 1 69 0 discriminator 2
+ 300 0016 80E0      		ldi r24,lo8(__c.1577)
+ 301 0018 90E0      		ldi r25,hi8(__c.1577)
+ 302 001a 0E94 0000 		call morse_P
+ 303               	.LVL26:
+ 304               	.LBB38:
+ 305               	.LBB39:
+ 306               		.loc 2 164 0 discriminator 2
+ 307 001e 8FEF      		 ldi r24,lo8(4799999)
+ 308 0020 9DE3      	    ldi r25,hi8(4799999)
+ 309 0022 A9E4      	    ldi r26,hlo8(4799999)
+ 310 0024 8150      	    1:subi r24,1
+ 311 0026 9040      	    sbci r25,0
+ 312 0028 A040      	    sbci r26,0
+ 313 002a 01F4      	    brne 1b
+ 314 002c 00C0      		rjmp .
+ 315 002e 0000      		nop
+ 316               	.LBE39:
+ 317               	.LBE38:
+  68:blinky.c      **** 		for (i=0; i<6; i++) {
+ 318               		.loc 1 68 0 discriminator 2
+ 319 0030 CF5F      		subi r28,lo8(-(1))
+ 320               	.LVL27:
+ 321               	.L18:
+  68:blinky.c      **** 		for (i=0; i<6; i++) {
+ 322               		.loc 1 68 0 is_stmt 0 discriminator 1
+ 323 0032 C630      		cpi r28,lo8(6)
+ 324 0034 00F0      		brlo .L16
+  72:blinky.c      **** 		morse_P(PSTR("DOES ANYBODY STILL KNOW MORSE CODE?"));
+ 325               		.loc 1 72 0 is_stmt 1
+ 326 0036 80E0      		ldi r24,lo8(__c.1582)
+ 327 0038 90E0      		ldi r25,hi8(__c.1582)
+ 328 003a 0E94 0000 		call morse_P
+ 329               	.LVL28:
+ 330               	.LBB40:
+ 331               	.LBB41:
+ 332               		.loc 2 164 0
+ 333 003e 8FEF      		 ldi r24,lo8(12799999)
+ 334 0040 9FE4      	    ldi r25,hi8(12799999)
+ 335 0042 A3EC      	    ldi r26,hlo8(12799999)
+ 336 0044 8150      	    1:subi r24,1
+ 337 0046 9040      	    sbci r25,0
+ 338 0048 A040      	    sbci r26,0
+ 339 004a 01F4      	    brne 1b
+ 340 004c 00C0      		rjmp .
+ 341 004e 0000      		nop
+  68:blinky.c      **** 		for (i=0; i<6; i++) {
+ 342               		.loc 1 68 0
+ 343 0050 C0E0      		ldi r28,lo8(0)
+ 344               	.LVL29:
+ 345 0052 00C0      		rjmp .L16
+ 346               	.LBE41:
+ 347               	.LBE40:
+ 348               		.cfi_endproc
+ 349               	.LFE7:
+ 351               	.global	morse_code_table
+ 352               		.section	.progmem.data,"a",@progbits
+ 355               	morse_code_table:
+ 356 0000 42        		.byte	66
+ 357 0001 84        		.byte	-124
+ 358 0002 A4        		.byte	-92
+ 359 0003 83        		.byte	-125
+ 360 0004 01        		.byte	1
+ 361 0005 24        		.byte	36
+ 362 0006 C3        		.byte	-61
+ 363 0007 04        		.byte	4
+ 364 0008 02        		.byte	2
+ 365 0009 74        		.byte	116
+ 366 000a A3        		.byte	-93
+ 367 000b 44        		.byte	68
+ 368 000c C2        		.byte	-62
+ 369 000d 82        		.byte	-126
+ 370 000e E3        		.byte	-29
+ 371 000f 64        		.byte	100
+ 372 0010 D4        		.byte	-44
+ 373 0011 43        		.byte	67
+ 374 0012 03        		.byte	3
+ 375 0013 81        		.byte	-127
+ 376 0014 23        		.byte	35
+ 377 0015 14        		.byte	20
+ 378 0016 63        		.byte	99
+ 379 0017 94        		.byte	-108
+ 380 0018 B4        		.byte	-76
+ 381 0019 C4        		.byte	-60
+ 384               	__c.1577:
+ 385 001a 534F 5300 		.string	"SOS"
+ 388               	__c.1582:
+ 389 001e 444F 4553 		.string	"DOES ANYBODY STILL KNOW MORSE CODE?"
+ 389      2041 4E59 
+ 389      424F 4459 
+ 389      2053 5449 
+ 389      4C4C 204B 
+ 392               	__c.1590:
+ 393 0042 5370 6163 		.string	"Space\n"
+ 393      650A 00
+ 396               	__c.1592:
+ 397 0049 4F70 7073 		.string	"Opps, unsupported character: "
+ 397      2C20 756E 
+ 397      7375 7070 
+ 397      6F72 7465 
+ 397      6420 6368 
+ 400               	__c.1594:
+ 401 0067 0A00      		.string	"\n"
+ 404               	__c.1596:
+ 405 0069 4368 6172 		.string	"Char "
+ 405      2000 
+ 408               	__c.1601:
+ 409 006f 2064 6168 		.string	" dah"
+ 409      00
+ 412               	__c.1603:
+ 413 0074 2064 6974 		.string	" dit"
+ 413      00
+ 416               	__c.1608:
+ 417 0079 0A00      		.string	"\n"
+ 420               	__c.1619:
+ 421 007b 0A00      		.string	"\n"
+ 422               		.text
+ 423               	.Letext0:
+ 424               		.file 3 "/usr/local/CrossPack-AVR-20121207/lib/gcc/avr/4.6.2/../../../../avr/include/stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 blinky.c
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:2      *ABS*:0000003f __SREG__
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:3      *ABS*:0000003e __SP_H__
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:4      *ABS*:0000003d __SP_L__
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:5      *ABS*:00000034 __CCP__
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:6      *ABS*:00000000 __tmp_reg__
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:7      *ABS*:00000001 __zero_reg__
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:16     .text.morse_character:00000000 morse_character
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:392    .progmem.data:00000042 __c.1590
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:396    .progmem.data:00000049 __c.1592
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:400    .progmem.data:00000067 __c.1594
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:404    .progmem.data:00000069 __c.1596
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:355    .progmem.data:00000000 morse_code_table
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:408    .progmem.data:0000006f __c.1601
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:412    .progmem.data:00000074 __c.1603
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:416    .progmem.data:00000079 __c.1608
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:216    .text.morse_P:00000000 morse_P
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:420    .progmem.data:0000007b __c.1619
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:277    .text.startup.main:00000000 main
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:384    .progmem.data:0000001a __c.1577
+/var/folders/r9/ppmd4qnx30vd4lnhhxkzww1c0000gn/T//ccdWwuwr.s:388    .progmem.data:0000001e __c.1582
+
+UNDEFINED SYMBOLS
+__do_copy_data
+__do_clear_bss
+print_P
+usb_debug_putchar
+usb_init

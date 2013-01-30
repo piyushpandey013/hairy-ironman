@@ -35,15 +35,20 @@ void adc_interrupt_handler()
     adc_changed = true;
 }
 
-void adc_thread()
+// One day, this will grow up to be a thread.
+void input_thread()
 {
+    /*
     while (true)
     {
+    */
         if (adc_changed)
         {
             adc_t buffer = adc_reading;
 
             set_gauge_target( &SControl, reading_to_angle( buffer ) );
         }
+    /*
     }
+    */
 }

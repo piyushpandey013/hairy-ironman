@@ -30,8 +30,10 @@ enum move_direction
 
 extern unsigned int accel_delay[];
 
-extern unsigned int motorStateMap[];
-extern unsigned int motorStates;
+//extern unsigned int motorStateMap[];
+//extern unsigned int motorStates;
+extern uint_fast8_t motorStateMap[];
+extern uint_fast8_t motorStates;
 
 //The following is from the datasheet, and allows us to tie pins 2/3 together
 //unsigned int motorStateMap[] = {0x9, 0x1, 0x7, 0x6, 0xE, 0x8};
@@ -40,7 +42,8 @@ extern unsigned int motorStates;
 struct motor_controller
 {
     unsigned int state_index;
-    unsigned int motor_byte;
+    //unsigned int motor_byte;
+    volatile uint8_t* motor_byte;
     // we can add pin addresses or whatever here later
 };
 
@@ -55,21 +58,22 @@ struct step_controller
     unsigned int num_accel_steps;
     unsigned int velocity;
     bool needs_update;
+    struct motor_controller MControl;
 };
 
 
 // Declarations
 
 extern struct step_controller  SControl;
-extern struct motor_controller MControl;
+//extern struct motor_controller MControl;
 
-void initController(void);
+void init_controller(struct step_controller* c);
 
 void advance_motor( struct motor_controller* m, enum move_direction d );
 
-void print_step_controller( struct step_controller* c );
+// void print_step_controller( struct step_controller* c );
 
 void set_gauge_target( struct step_controller* c, angle_t target_angle );
 
-void controller_thread();
+void controller_thread(struct step_controller* c);
 #endif
