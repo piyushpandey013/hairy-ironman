@@ -4,6 +4,7 @@ LIBS =
 CC = avr-gcc
 CFLAGS = -std=c99 -g -Wall -Wextra -Werror -O2
 PART = atmega32u4
+#PART = atmega324p
 ARCH = -mmcu=$(PART)
 OBJCOPY = avr-objcopy
 PROG = avrdude

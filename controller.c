@@ -17,7 +17,8 @@ steps_t motor_steps     = (MOTOR_SWEEP_DEG * 3); // full-step is 1/3 degree; mul
 
 // accel_delay is the delay, in microseconds, between steps, with the values carefully tuned
 //time_us_t accel_delay[] = { 3000, 1500, 1000, 800, 600 };
-time_us_t accel_delay[] = { 15624, 11718, 8788, 6591, 4943 };
+time_us_t accel_delay[] = { 15000, 11250, 8437, 6328, 4746, 3559, 2669, 2002, 1501, 1126 };
+uint8_t num_accel_delay = 10;
 
 // half-step bit values written to the motor control port
 //  port   1 2 3 4
@@ -55,17 +56,16 @@ void init_controller(struct step_controller* c)
     c->velocity = 0;
     c->current_pos = 0;
     c->target_pos = 0;
-    c->num_accel_steps = 5;
-    //initialize m
+    c->num_accel_steps = num_accel_delay;
+    c->direction = UP;
+
     c->MControl.state_index = 0;
-    //c->MControl.motor_byte = 0;
     c->MControl.motor_byte = &PORTD;
 
     init_stepper_timer();
     
     // for testing
-    DDRD |= (1<<DDD0) | (1<<DDD1) | (1<<DDD2) | (1<<DDD3); // set motor pins to output
-    DDRC |= (1<<DDC7);
+    init_debug_leds();
 }
 
 /*
@@ -100,7 +100,7 @@ void advance_motor( struct motor_controller* m, enum move_direction d )
 void controller_thread(struct step_controller* c)
 {
     if (c->needs_update == true) {
-        signed int delta = ( c->direction == UP ? c->target_pos - c->current_pos : c->current_pos - c->target_pos );
+        int16_t delta = ( c->direction == UP ? c->target_pos - c->current_pos : c->current_pos - c->target_pos );
 
         switch (c->state) {
             case STOPPED:
@@ -120,7 +120,8 @@ void controller_thread(struct step_controller* c)
                 } else {
                     if (c->velocity == c->num_accel_steps-1)
                         c->state = MAX;
-                    c->velocity += 1;
+                    else
+                        c->velocity += 1;
                 }
             break;
 

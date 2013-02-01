@@ -12,8 +12,6 @@ typedef uint16_t steps_t; // Integer number of steps
 extern steps_t motor_steps;
 extern angle_t motor_sweep_deg;
 
-extern unsigned int step_target_register;
-
 enum control_state
 {
     STOPPED,
@@ -54,7 +52,6 @@ struct step_controller
     enum control_state state;
     steps_t current_pos;
     steps_t target_pos;
-    //unsigned int current_delay;
     unsigned int num_accel_steps;
     unsigned int velocity;
     bool needs_update;

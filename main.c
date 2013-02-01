@@ -19,23 +19,20 @@ usb_workaround();
     init_controller(&SControl);
 //  initInput();
 
-    blinky();
+//    blinky();
 
     sei(); // enable global interrupts
 
     // Just move the gauge back and forth, for now
-    while (true)
-    {
-        set_gauge_target( &SControl, (15<<4) );
-        while (SControl.current_pos != 100) { controller_thread(&SControl); }
-        blinky();
-        //set_gauge_target( &SControl, 0 );
-        //while (SControl.current_pos != 0) { controller_thread(&SControl); }
+    while (true) {
+    set_gauge_target( &SControl, (100<<4) );
+    while (SControl.current_pos != SControl.target_pos) { controller_thread(&SControl); }
+    blinky();
+//    set_gauge_target( &SControl, 0 );
+//    while (SControl.current_pos != SControl.target_pos) { controller_thread(&SControl); }
         //blinky();
     }
   
-    blinky();
-
     /*
     while (true)
     {
@@ -53,10 +50,10 @@ void blinky(void)
     {
         PORTC ^= (1<<PORTC7);
         for (int j = 1; j <= i; j += 1)
-            _delay_ms(100);
+            _delay_ms(50);
         PORTC ^= (1<<PORTC7);
         for (int j = 1; j <= i; j += 1)
-            _delay_ms(100);
+            _delay_ms(50);
     }
 }
 
