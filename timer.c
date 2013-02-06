@@ -53,10 +53,26 @@ ticks_t ms_to_ticks( time_us_t delay_ms )
 
 ISR(TIMER1_COMPA_vect)
 {
-    set_stepper_timer_timeout( ms_to_ticks( accel_delay[SControl.velocity] ) );
     SControl.needs_update = true;
-    advance_motor(&SControl.MControl, SControl.direction);
-    SControl.current_pos += (SControl.direction == UP ? 1 : -1);
+    switch (SControl.state)
+    {
+        case STOPPED:
+            // what do we do if the state is stopped?
+            return;
+            break;
+        case ACCELERATING:
+            SControl.MControl.velocity += 1;
+            set_stepper_timer_timeout( ms_to_ticks( accel_delay[SControl.MControl.velocity] ) );
+            break;
+        case DECELERATING:
+            SControl.MControl.velocity -= 1;
+            set_stepper_timer_timeout( ms_to_ticks( accel_delay[SControl.MControl.velocity] ) );
+            break;
+        default: // this catches state == MAX
+            break;
+    }
+    advance_motor(&SControl.MControl, SControl.MControl.direction);
+    SControl.MControl.current_pos += (SControl.MControl.direction == UP ? 1 : -1);
 }
 
 void request_timer_interrupt(void)

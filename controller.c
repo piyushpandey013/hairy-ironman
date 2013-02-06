@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <avr/io.h>
 
@@ -53,13 +54,13 @@ void init_controller(struct step_controller* c)
 {
     // initialize c
     c->state = STOPPED;
-    c->velocity = 0;
-    c->current_pos = 0;
     c->target_pos = 0;
-    c->num_accel_steps = num_accel_delay;
-    c->direction = UP;
 
+    c->MControl.velocity = 0;
+    c->MControl.direction = UP;
+    c->MControl.current_pos = 0;
     c->MControl.state_index = 0;
+    c->MControl.num_accel_steps = num_accel_delay;
     c->MControl.motor_byte = &PORTD;
 
     init_stepper_timer();
@@ -100,54 +101,40 @@ void advance_motor( struct motor_controller* m, enum move_direction d )
 void controller_thread(struct step_controller* c)
 {
     if (c->needs_update == true) {
-        int16_t delta = ( c->direction == UP ? c->target_pos - c->current_pos : c->current_pos - c->target_pos );
+        c->needs_update = false;
 
-        switch (c->state) {
-            case STOPPED:
-                if ( c->target_pos != c->current_pos ) {
-                    c->direction = ( c->target_pos > c->current_pos ? UP : DOWN );
-                    c->state = ACCELERATING;
-                } else {
-                    stop_stepper_timer();
-                }
-            break;
+        int16_t delta = (c->MControl.direction == UP ? c->target_pos - c->MControl.current_pos : c->MControl.current_pos - c->target_pos);
 
-            case ACCELERATING:
-                if (delta <= (signed)c->velocity) {
-                    // we're near or past the target, so we start slowing down
-                    c->state = DECELERATING;
-                    c->velocity -= 1;
-                } else {
-                    if (c->velocity == c->num_accel_steps-1)
-                        c->state = MAX;
-                    else
-                        c->velocity += 1;
-                }
-            break;
+        if (delta == 0 && c->MControl.velocity == 0)
+        {
+            c->state = STOPPED;
+            return;
+        }
 
-            case DECELERATING:
-                if (delta > (signed)c->velocity) {
-                    // too far away, we need to speed up
-                    c->state = ACCELERATING;
-                    c->velocity += 1;
-                } else {
-                    c->velocity -= 1;
-                    if (c->velocity == 0)
-                        c->state = STOPPED;
-                }
-            break;
+        if (delta < 0) // we're past our target
+        {
+            if (c->MControl.velocity == 0) // we've come to a stop and can turn around
+            {
+                c->MControl.direction = ( c->MControl.direction == UP ? DOWN : UP ); // reverse direction
+                c->state = ACCELERATING;
+            }
+            else // hit the brakes
+            {
+                c->state = DECELERATING;
+            }
 
-            case MAX:
-                if (delta <= (signed)c->velocity) {
-                    c->velocity -= 1;
-                    c->state = DECELERATING;
-                }
-            break;
+            return;
+        }
 
-            default:
-            break;
-        } // end switch (c->state)
-    } // end if (c->needs_update)
+        if (delta <= (signed)c->MControl.velocity)
+            c->state = DECELERATING;
+        else if (c->MControl.velocity == c->MControl.num_accel_steps -1)
+            c->state = MAX;
+        else
+            c->state = ACCELERATING;
+
+    }
+
 }
 
 void set_stepper_target(struct step_controller* c, steps_t new_target_pos )
@@ -157,21 +144,8 @@ void set_stepper_target(struct step_controller* c, steps_t new_target_pos )
     if (new_target_pos >= motor_steps)
         new_target_pos = motor_steps; // saturate if given error input
 
-
-    // we check if we're stopped because we "arrived" since the last time we were called, and not just
-    //  stopped on our way back in another direction; this avoids trying to advance the motor too soon.
-    if (c->state == STOPPED && c->current_pos == c->target_pos)
-    {
-        c->target_pos = new_target_pos;
-        c->direction = ( c->current_pos > new_target_pos ? DOWN : UP );
-        request_timer_interrupt(); // fire the interrupt, which sets the timer interval, and moves the motor its initial step
-        start_stepper_timer();     // start the timer
-        c->velocity += 1;
-    } 
-    else // nope, we're already in the process of servicing some other move, so we just set the destination and go
-    {
-        c->target_pos = new_target_pos;
-    }
+    c->target_pos = new_target_pos;
+    c->needs_update = true;
 
 }
 

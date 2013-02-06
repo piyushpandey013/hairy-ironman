@@ -26,7 +26,7 @@ usb_workaround();
     // Just move the gauge back and forth, for now
     while (true) {
     set_gauge_target( &SControl, (100<<4) );
-    while (SControl.current_pos != SControl.target_pos) { controller_thread(&SControl); }
+    while (SControl.MControl.current_pos != SControl.target_pos) { controller_thread(&SControl); }
     blinky();
 //    set_gauge_target( &SControl, 0 );
 //    while (SControl.current_pos != SControl.target_pos) { controller_thread(&SControl); }

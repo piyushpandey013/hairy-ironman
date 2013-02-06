@@ -43,17 +43,20 @@ struct motor_controller
     //unsigned int motor_byte;
     volatile uint8_t* motor_byte;
     // we can add pin addresses or whatever here later
+
+    // physical properties of the motor
+    steps_t current_pos;
+    enum move_direction direction;
+    unsigned int velocity;
+    unsigned int num_accel_steps;
+
 };
 
 
 struct step_controller
 {
-    enum move_direction direction;
     enum control_state state;
-    steps_t current_pos;
     steps_t target_pos;
-    unsigned int num_accel_steps;
-    unsigned int velocity;
     bool needs_update;
     struct motor_controller MControl;
 };
