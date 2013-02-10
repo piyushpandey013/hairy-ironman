@@ -19,27 +19,25 @@ usb_workaround();
     init_controller(&SControl);
 //  initInput();
 
-//    blinky();
+    blinky();
 
     sei(); // enable global interrupts
 
-    // Just move the gauge back and forth, for now
-    while (true) {
-    set_gauge_target( &SControl, (100<<4) );
-    while (SControl.MControl.current_pos != SControl.target_pos) { controller_thread(&SControl); }
-    blinky();
-//    set_gauge_target( &SControl, 0 );
-//    while (SControl.current_pos != SControl.target_pos) { controller_thread(&SControl); }
-        //blinky();
-    }
-  
-    /*
     while (true)
     {
-        controller_thread();
-        input_thread();
+    for (int i = 0; i < 900; i++)
+    {
+        advance_motor(&(SControl.MControl), UP);
+        _delay_us(1200);
     }
-*/
+    for (int i = 0; i < 900; i++)
+    {
+        advance_motor(&(SControl.MControl), DOWN);
+        _delay_us(1200);
+    }
+    }
+    blinky();
+  
     return 0;
 }
 
@@ -48,10 +46,10 @@ void blinky(void)
     // testing
     for (int i = 5; i > 0; i -= 1)
     {
-        PORTC ^= (1<<PORTC7);
+        platform_light_status_led();
         for (int j = 1; j <= i; j += 1)
             _delay_ms(50);
-        PORTC ^= (1<<PORTC7);
+        platform_toggle_status_led();
         for (int j = 1; j <= i; j += 1)
             _delay_ms(50);
     }
@@ -59,26 +57,26 @@ void blinky(void)
 
 ISR(BADISR_vect)
 {
-    PORTC |= (1<<PORTC7);
+    platform_light_status_led();
     _delay_ms(1000);
-    PORTC ^= (1<<PORTC7);
+    platform_toggle_status_led();
     for (int i = 3; i > 0; i--)
     {
-        PORTC ^= (1<<PORTC7);
+        platform_toggle_status_led();
         _delay_ms(150);
-        PORTC ^= (1<<PORTC7);
+        platform_toggle_status_led();
         _delay_ms(150);
     }    for (int i = 3; i > 0; i--)
     {
-        PORTC ^= (1<<PORTC7);
+        platform_toggle_status_led();
         _delay_ms(300);
-        PORTC ^= (1<<PORTC7);
+        platform_toggle_status_led();
         _delay_ms(300);
     }    for (int i = 3; i > 0; i--)
     {
-        PORTC ^= (1<<PORTC7);
+        platform_toggle_status_led();
         _delay_ms(150);
-        PORTC ^= (1<<PORTC7);
+        platform_toggle_status_led();
         _delay_ms(150);
     }
 }

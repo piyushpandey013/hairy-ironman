@@ -21,4 +21,6 @@ void stepper_timer_handler();
 
 void set_stepper_timer_timeout( ticks_t timeout );
 
+void set_stepper_timer_timeout_us( time_us_t timeout );
+
 #endif

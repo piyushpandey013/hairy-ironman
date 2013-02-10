@@ -2,9 +2,9 @@ TARGET = stepper
 LIBS = 
 #CC = c99
 CC = avr-gcc
-CFLAGS = -std=c99 -g -Wall -Wextra -Werror -O2
+CFLAGS = -std=c99 -gstabs -Wall -Wextra -Werror -O2
 PART = atmega32u4
-#PART = atmega324p
+#PART = atmega328
 ARCH = -mmcu=$(PART)
 OBJCOPY = avr-objcopy
 PROG = avrdude
@@ -17,7 +17,7 @@ PROGFLAGS = -c avr109 -P $(PROGDEV) -p $(PART)
 default: $(TARGET)
 all: default
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
+OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c)) $(patsubst %.c, %.o, platform/$(PART).c)
 HEADERS = $(wildcard *.h)
 
 %.o: %.c $(HEADERS)
@@ -26,10 +26,10 @@ HEADERS = $(wildcard *.h)
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) $(ARCH) -Wall $(LIBS) -o $@
+	$(CC) $(OBJECTS) $(ARCH) $(CFLAGS) -Wall $(LIBS) -o $@
 
 clean:
-	-rm -f *.o
+	-rm -rf *.o
 	-rm -f $(TARGET) $(TARGET).hex
 
 hex: $(TARGET)

@@ -23,11 +23,11 @@ main (void)
     {				/* main loop here */
       PORTD = BROWN;
       _delay_ms (50);
-      PORTD = YELLOW;
+      PORTD = ORANGE;
       _delay_ms (50);
       PORTD = BLACK;
       _delay_ms (50);
-      PORTD = ORANGE;
+      PORTD = YELLOW;
       _delay_ms (50);
     }
 }

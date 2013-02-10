@@ -1,16 +1,13 @@
-/* From http://www.instructables.com/id/EP4OIQNL5LEV0FB8YX/ */
-/* Playing with getting the small stepper motors driven. */
-/* Standard Includes */
+
 #include <inttypes.h>
 #include <avr/io.h>
-#include <avr/interrupt.h>
-#define F_CPU 8000000UL
+#define F_CPU 16000000UL
 #include <util/delay.h>
 
 #define CW  0
 #define CCW 1
 
-#define MOTORPORT PORTB
+#define MOTORPORT PORTD
 // #define DEBUGPORT PORTD
 
 //                                  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12
@@ -57,7 +54,8 @@ void doWholeSteps(uint8_t dir, uint16_t numsteps, uint16_t delay)
   for (stepsrem = numsteps; stepsrem; stepsrem--)
   {
     wholestep(dir);
-    _delay_us(delay);
+    while (delay--)
+        _delay_us(1);
   }
 }
 
@@ -67,14 +65,15 @@ void doHalfSteps(uint8_t dir, uint16_t numsteps, uint16_t delay)
   for (stepsrem = numsteps; stepsrem; stepsrem--)
   {
     halfstep(dir);
-    _delay_us(delay);
+    while (delay--)
+        _delay_us(1);
   }
 }
 
 void initPorts()
 {
-  DDRB = 0xff;			/* Enable output on all of the B pins */
-  PORTB = 0x00;			/* Set them all to 0v */
+//  DDRB = 0xff;			/* Enable output on all of the B pins */
+//  PORTB = 0x00;			/* Set them all to 0v */
   DDRD = 0xff;
   PORTD = 0x00;
 }
@@ -87,8 +86,8 @@ int main()
   uint8_t i = 1;
   while (1)
   {
-    doWholeSteps(CW, 100, 160000);
-    doWholeSteps(CCW, 100, 160000);
+    doWholeSteps(CW, 100, 6);
+    doWholeSteps(CCW, 100, 6);
 
   }
   

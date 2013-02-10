@@ -39,15 +39,12 @@ extern uint_fast8_t motorStates;
 
 struct motor_controller
 {
-    unsigned int state_index;
-    //unsigned int motor_byte;
-    volatile uint8_t* motor_byte;
-    // we can add pin addresses or whatever here later
+    volatile unsigned int state_index;
 
     // physical properties of the motor
-    steps_t current_pos;
+    volatile steps_t current_pos;
     enum move_direction direction;
-    unsigned int velocity;
+    volatile unsigned int velocity;
     unsigned int num_accel_steps;
 
 };
@@ -57,7 +54,7 @@ struct step_controller
 {
     enum control_state state;
     steps_t target_pos;
-    bool needs_update;
+    volatile bool needs_update;
     struct motor_controller MControl;
 };
 
@@ -72,6 +69,8 @@ void init_controller(struct step_controller* c);
 void advance_motor( struct motor_controller* m, enum move_direction d );
 
 // void print_step_controller( struct step_controller* c );
+
+void set_stepper_target(struct step_controller* c, steps_t new_target_pos );
 
 void set_gauge_target( struct step_controller* c, angle_t target_angle );
 
