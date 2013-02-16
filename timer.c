@@ -10,8 +10,6 @@
 #include "platform.h"
 #include "slide.h"
 
-unsigned int timer_prescale = 8;
-
 void init_stepper_timer()
 {
     platform_init_stepper_timer();
@@ -42,7 +40,7 @@ void set_stepper_timer_timeout( ticks_t timeout )
 
 ticks_t us_to_ticks( time_us_t delay_us )
 {
-    ticks_t ticks_per_us = f_cpu / timer_prescale / 1000; // yay compile-time optimizers
+    ticks_t ticks_per_us = F_CPU / timer_prescale / 1000000;
     return delay_us * ticks_per_us;
 }
 
@@ -57,22 +55,21 @@ ISR(STEPPER_TIMER_INTERRUPT_vect)
     switch (SControl.state)
     {
         case STOPPED:
-            // what do we do if the state is stopped?
+            // we're stopped - do nothing
             return;
             break;
         case ACCELERATING:
             SControl.MControl.velocity += 1;
-            set_stepper_timer_timeout( us_to_ticks( accel_delay[SControl.MControl.velocity] ) );
             break;
         case DECELERATING:
             SControl.MControl.velocity -= 1;
-            set_stepper_timer_timeout( us_to_ticks( accel_delay[SControl.MControl.velocity] ) );
             break;
         default: // this catches state == MAX
             break;
     }
     advance_motor(&SControl.MControl, SControl.MControl.direction);
-    SControl.MControl.current_pos += (SControl.MControl.direction == UP ? 1 : -1);
+    set_stepper_timer_timeout( us_to_ticks( accel_delay[SControl.MControl.velocity] ) );
+    //controller_thread(&SControl);
 }
 
 void request_timer_interrupt(void)

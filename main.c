@@ -1,8 +1,6 @@
 
 #include <stdbool.h>
 
-#define F_CPU 16000000L
-
 #include <util/delay.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -14,29 +12,27 @@ void blinky(void);
 
 int main()
 {
-usb_workaround();
+usb_workaround(); // because the arduino bootloader is a piece of shit
 
     init_controller(&SControl);
 //  initInput();
 
     blinky();
 
-    sei(); // enable global interrupts
+    sei();
 
     while (true)
+    for (int i = 300; i > 0; i -= 10)
     {
-    for (int i = 0; i < 900; i++)
-    {
-        advance_motor(&(SControl.MControl), UP);
-        _delay_us(1200);
+        
+        set_gauge_target(&SControl, (i<<4) );
+        controller_thread(&SControl);
+        while (SControl.MControl.current_pos != SControl.target_pos) controller_thread(&SControl);
+        set_gauge_target(&SControl, 0 );
+        controller_thread(&SControl);
+        while (SControl.MControl.current_pos != SControl.target_pos) controller_thread(&SControl);
+
     }
-    for (int i = 0; i < 900; i++)
-    {
-        advance_motor(&(SControl.MControl), DOWN);
-        _delay_us(1200);
-    }
-    }
-    blinky();
   
     return 0;
 }

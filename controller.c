@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include "controller.h"
 #include "platform.h"
@@ -12,17 +13,17 @@
 
 // Define the limits of the gauge we're controlling
 
-#define MOTOR_SWEEP_DEG 270 // whole degrees only, please
+#define MOTOR_SWEEP_DEG 315 // whole degrees only, please
 angle_t motor_sweep_deg = MOTOR_SWEEP_DEG << 4;                 // shift to [1/10/4] format
 steps_t motor_steps     = (MOTOR_SWEEP_DEG * 3); // full-step is 1/3 degree; multiply and shift to integer format
 
 // accel_delay is the delay, in microseconds, between steps, with the values carefully tuned
-//time_us_t accel_delay[] = { 3000, 1500, 1000, 800, 600 };
-//uint8_t num_accel_delay = 5;
+time_us_t accel_delay[] = { 3000, 3000, 1500, 1000, 800, 600 };
+uint8_t num_accel_delay = 5;
 //time_us_t accel_delay[] = { 15000, 11250, 8437, 6328, 4746, 3559, 2669, 2002, 1501, 1126 };
 //uint8_t num_accel_delay = 10;
-time_us_t accel_delay[] = { 65000, 65000, 65000, 65000, 65000, 65000 };
-uint8_t num_accel_delay = 6;
+//time_us_t accel_delay[] = { 800, 800, 800, 800, 800, 800 };
+//uint8_t num_accel_delay = 6;
 
 // half-step bit values written to the motor control port
 //  port   1 2 3 4
@@ -94,20 +95,11 @@ void toggle_led(void)
 
 void advance_motor( struct motor_controller* m, enum move_direction d )
 {
+
     m->state_index = (m->state_index + (d == UP ? 1 : motorStates-1 )) % motorStates;
     *(motor_port) = motorStateMap[m->state_index];
-    /*
-    uint8_t mask = motorStateMap[m->state_index];
-    for (int i = 0; i < num_motor_pins; i++)
-    {
-        bool bit = mask & 0x1;
-        if (bit) // set bit high
-            *(motor_ports[i]) |= bit << motor_pins[i];
-        else
-            *(motor_ports[i]) &= ~(bit << motor_pins[i]);
-        mask >>= 1;
-    }
-    */
+    SControl.MControl.current_pos += (SControl.MControl.direction == UP ? 1 : -1);
+
     toggle_led();
 }
 
@@ -117,22 +109,22 @@ void controller_thread(struct step_controller* c)
     if (c->needs_update == true) {
         c->needs_update = false;
 
-        // the casts in the following line may cause truncation problems - do you need more than 2^15-1 positions?
-        int16_t delta = (c->MControl.direction == UP ? (int16_t)c->target_pos - (int16_t)c->MControl.current_pos : (int16_t)c->MControl.current_pos - (int16_t)c->target_pos);
+        cli();
 
-        if (delta == 0 && c->MControl.velocity == 0)
+        if (c->target_pos == c->MControl.current_pos && c->MControl.velocity == 0)
         {
             c->state = STOPPED;
             return;
         }
 
-        if (delta < 0 && c->MControl.velocity == 0) // we're past our target and we've come to a stop
+        if (c->MControl.velocity == 0)
         {
-            c->MControl.direction = ( c->MControl.direction == UP ? DOWN : UP ); // reverse direction
-            c->state = ACCELERATING;
-
-            return;
+            c->MControl.direction = c->MControl.current_pos < c->target_pos ? UP : DOWN;
+            c->MControl.velocity = 1;
         }
+
+        // the casts in the following line may cause truncation problems - do you need more than 2^15-1 positions?
+        int16_t delta = (c->MControl.direction == UP ? (int16_t)c->target_pos - (int16_t)c->MControl.current_pos : (int16_t)c->MControl.current_pos - (int16_t)c->target_pos);
 
         if (delta <= (signed)c->MControl.velocity)
             c->state = DECELERATING;
@@ -141,8 +133,9 @@ void controller_thread(struct step_controller* c)
         else
             c->state = ACCELERATING;
 
-    }
+        sei();
 
+    }
 }
 
 void set_stepper_target(struct step_controller* c, steps_t new_target_pos )
@@ -163,7 +156,7 @@ steps_t angle_to_steps( angle_t target_angle )
     int32_t workspace = (int32_t)target_angle * (int32_t)motor_steps           / (int32_t)motor_sweep_deg;
 
     // the result is normalized by the ratio target_angle/motor_sweep_deg, so the can drop the high bits
-    //  (unless, of course, target_angle > motor_sweep_deg, which, I guess, caveat scriptor)
+    //  (unless, of course, target_angle > motor_sweep_deg, which, I guess, caveat utilitor)
     return (steps_t)workspace;
 }
 

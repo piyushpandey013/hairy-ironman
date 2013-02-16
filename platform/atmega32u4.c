@@ -5,11 +5,8 @@
 
 //#include "../platform.h"
 
-/*
-uint8_t num_motor_pins = 4;
-volatile uint8_t* motor_ports[] = { &PORTD, &PORTC, &PORTD, &PORTE };
-uint8_t          motor_pins[]  = { PORTD4, PORTC6, PORTD7, PORTE6 };
-*/
+const uint8_t timer_prescale = 8;
+
 volatile uint8_t* motor_port = &PORTD;
 
 void platform_toggle_status_led(void)
@@ -50,14 +47,15 @@ void platform_zero_stepper_timer(void)
 
 void platform_start_stepper_timer(void)
 {
-    //    TCCR1B |= (1<<CS11);   // set the prescaler to /8 and start the clock
-    TCCR1B |= (1<<CS11) | (1<<CS10); // prescaler to /64 for testing
+    TCCR1B |= (1<<CS11);   // set the prescaler to /8 and start the clock
+    //TCCR1B |= (1<<CS11) | (1<<CS10); // prescaler to /64 for testing
     TIMSK1 |= (1<<OCIE1A); // enable the input capture interrupt
 }
 
 void platform_init_stepper_timer(void)
 {
     TCCR1B |= (1<<WGM12);  // set the timer to run in CTC mode
+    OCR1A = 0xFFFF;
 }
 
 void init_debug_leds(void)

@@ -3,11 +3,8 @@
 
 #include "../slide.h" // for ticks_t
 
-/*
-uint8_t num_motor_pins = 4;
-volatile uint8_t* motor_ports[] = { &PORTB, &PORTB, &PORTB, &PORTB };
-uint8_t          motor_pins[]  = { PORTB0, PORTB1, PORTB2, PORTB3 };
-*/
+const uint8_t timer_prescale = 8;
+
 volatile uint8_t* motor_port = &PORTB;
 
 void platform_toggle_status_led(void)

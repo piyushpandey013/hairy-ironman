@@ -43,7 +43,7 @@ struct motor_controller
 
     // physical properties of the motor
     volatile steps_t current_pos;
-    enum move_direction direction;
+    volatile enum move_direction direction;
     volatile unsigned int velocity;
     unsigned int num_accel_steps;
 

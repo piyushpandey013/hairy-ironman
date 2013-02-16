@@ -6,17 +6,12 @@
 
 #include "slide.h" // for ticks_t
 
-/*
-static const uint32_t f_cpu = 20000000;
+#if !defined F_CPU
+#error "F_CPU must be defined for platform.h"
+#endif
 
-static const uint32_t cpu_clocks_per_us = f_cpu / 1000000;
-static const uint32_t cpu_clocks_per_ms = f_cpu / 1000;
-*/
-
-// C is annoying sometimes
-#define f_cpu 20000000L
-#define cpu_clocks_per_us f_cpu / 1000000
-#define cpu_clocks_per_ms f_cpu / 1000
+#define cpu_clocks_per_us F_CPU / 1000000
+#define cpu_clocks_per_ms F_CPU / 1000
 
 #if defined (__AVR_ATmega32U4__)
 #include "platform/atmega32u4.h"
@@ -28,11 +23,8 @@ static const uint32_t cpu_clocks_per_ms = f_cpu / 1000;
 #define STEPPER_TIMER_INTERRUPT_vect TIMER1_COMPA_vect
 #endif
 
-/*
-extern          uint8_t  num_motor_pins;
-extern volatile uint8_t* motor_ports[];
-extern          uint8_t  motor_pins[];
-*/
+extern const uint8_t timer_prescale;
+
 extern uint8_t* motor_port;
 
 void init_debug_leds(void);
