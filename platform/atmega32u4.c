@@ -87,3 +87,18 @@ void usb_workaround(void)
    // Physically detact USB (by disconnecting internal pull-ups on D+ and D-) 
    UDCON |= (1 << DETACH);
 }
+
+void platform_init_adc(void)
+{
+    // for now, we're going to set this to take readings from the on-chip temperature sensor
+    // because simple
+
+    // Set MUX to use on-chip temperature sensor 
+    ADMUX  = (1 << MUX0) | (1 << MUX1) | (1 << MUX2); 
+    ADCSRB = (1 << MUX5);   // MUX 5 bit part of ADCSRB 
+
+    // enable the ADC, enable auto-triggering, enable the interrupt, and set the prescaler to /64
+    ADCSRA |= (1<<ADEN) | (1<<ADATE) | (1<<ADIE) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
+
+    // start the conversions
+    ADCSRA |= (1<<ADSC);

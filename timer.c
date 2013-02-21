@@ -68,7 +68,7 @@ ISR(STEPPER_TIMER_INTERRUPT_vect)
             break;
     }
     advance_motor(&SControl.MControl, SControl.MControl.direction);
-    set_stepper_timer_timeout( us_to_ticks( accel_delay[SControl.MControl.velocity] ) );
+    set_stepper_timer_timeout( accel_delay_ticks[SControl.MControl.velocity] );
     //controller_thread(&SControl);
 }
 

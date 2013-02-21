@@ -18,7 +18,8 @@ angle_t motor_sweep_deg = MOTOR_SWEEP_DEG << 4;                 // shift to [1/1
 steps_t motor_steps     = (MOTOR_SWEEP_DEG * 3); // full-step is 1/3 degree; multiply and shift to integer format
 
 // accel_delay is the delay, in microseconds, between steps, with the values carefully tuned
-time_us_t accel_delay[] = { 3000, 3000, 1500, 1000, 800, 600 };
+//time_us_t accel_delay[] = { 3000, 3000, 1500, 1000, 800, 600 };
+time_us_t accel_delay_ticks[] = { 6000, 6000, 3000, 2000, 1600, 1200 }; // µs_delay * f_cpu / prescale / 1000000
 uint8_t num_accel_delay = 5;
 //time_us_t accel_delay[] = { 15000, 11250, 8437, 6328, 4746, 3559, 2669, 2002, 1501, 1126 };
 //uint8_t num_accel_delay = 10;
@@ -68,7 +69,7 @@ void init_controller(struct step_controller* c)
 
     init_stepper_timer();
     start_stepper_timer();
-    set_stepper_timer_timeout_us( accel_delay[0] );
+    set_stepper_timer_timeout_us( accel_delay_ticks[0] );
     
 }
 
@@ -100,7 +101,6 @@ void advance_motor( struct motor_controller* m, enum move_direction d )
     *(motor_port) = motorStateMap[m->state_index];
     SControl.MControl.current_pos += (SControl.MControl.direction == UP ? 1 : -1);
 
-    toggle_led();
 }
 
 // Eventually, this will grow into its own thread. Dream big.
@@ -108,8 +108,6 @@ void controller_thread(struct step_controller* c)
 {
     if (c->needs_update == true) {
         c->needs_update = false;
-
-        cli();
 
         if (c->target_pos == c->MControl.current_pos && c->MControl.velocity == 0)
         {
@@ -132,8 +130,6 @@ void controller_thread(struct step_controller* c)
             c->state = MAX;
         else
             c->state = ACCELERATING;
-
-        sei();
 
     }
 }
@@ -167,4 +163,5 @@ void set_gauge_target( struct step_controller* c, angle_t target_angle )
 
     steps_t target_pos = angle_to_steps( target_angle );
     set_stepper_target( c, target_pos );
+    controller_thread(&SControl);
 }

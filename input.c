@@ -5,6 +5,7 @@
 
 #include "input.h"
 #include "controller.h"
+#include "platform.h"
 
 volatile adc_t adc_reading; // 10-bit ADC
 volatile bool adc_changed;
@@ -14,10 +15,7 @@ adc_t input_min = 0x000;
 
 void initInput()
 {
-    // init ADC
-    // free-running mode
-    // some "reasonable" speed
-    // default values to 0
+    platform_init_adc();
 }
 
 angle_t reading_to_angle( adc_t reading )
@@ -46,7 +44,8 @@ void input_thread()
         {
             adc_t buffer = adc_reading;
 
-            set_gauge_target( &SControl, reading_to_angle( buffer ) );
+            //set_gauge_target( &SControl, reading_to_angle( buffer ) );
+            set_gauge_target( &SControl, (buffer >> 4) ); // ADC is 12-bit, so we limit it to 8 bits so it fits nicely
         }
     /*
     }

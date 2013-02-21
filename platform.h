@@ -49,4 +49,6 @@ void platform_light_status_led(void);
 
 void platform_darken_status_led(void);
 
+void platform_init_adc(void);
+
 #endif

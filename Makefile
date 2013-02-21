@@ -2,7 +2,7 @@ TARGET = stepper
 LIBS = 
 #CC = c99
 CC = avr-gcc
-CFLAGS = -std=c99 -gstabs -Wall -Wextra -Werror -O2
+CFLAGS = -std=c99 -gstabs -Wall -Wextra -Werror -O3
 F_CPU = 16000000
 DEFINES = -DF_CPU=$(F_CPU)UL
 PART = atmega32u4

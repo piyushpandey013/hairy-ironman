@@ -26,7 +26,7 @@ enum move_direction
     DOWN = -1
 };
 
-extern unsigned int accel_delay[];
+extern unsigned int accel_delay_ticks[];
 
 //extern unsigned int motorStateMap[];
 //extern unsigned int motorStates;
@@ -53,7 +53,7 @@ struct motor_controller
 struct step_controller
 {
     enum control_state state;
-    steps_t target_pos;
+    volatile steps_t target_pos;
     volatile bool needs_update;
     struct motor_controller MControl;
 };
