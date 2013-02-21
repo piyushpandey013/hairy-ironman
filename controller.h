@@ -28,14 +28,8 @@ enum move_direction
 
 extern unsigned int accel_delay_ticks[];
 
-//extern unsigned int motorStateMap[];
-//extern unsigned int motorStates;
 extern uint_fast8_t motorStateMap[];
 extern uint_fast8_t motorStates;
-
-//The following is from the datasheet, and allows us to tie pins 2/3 together
-//unsigned int motorStateMap[] = {0x9, 0x1, 0x7, 0x6, 0xE, 0x8};
-//unsigned int motorStates = 6;;
 
 struct motor_controller
 {
@@ -62,13 +56,10 @@ struct step_controller
 // Declarations
 
 extern struct step_controller  SControl;
-//extern struct motor_controller MControl;
 
 void init_controller(struct step_controller* c);
 
 void advance_motor( struct motor_controller* m, enum move_direction d );
-
-// void print_step_controller( struct step_controller* c );
 
 void set_stepper_target(struct step_controller* c, steps_t new_target_pos );
 

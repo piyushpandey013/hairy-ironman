@@ -15,38 +15,16 @@ int main()
 usb_workaround(); // because the arduino bootloader is a piece of shit
 
     init_controller(&SControl);
-//  initInput();
 
     blinky();
 
+    initInput();
     sei();
 
     while (true)
     {
-
-        int i = 0;
-        for (;i < 300; i+=10)
-        {
-            set_gauge_target(&SControl, (i<<4) );
-            while (SControl.MControl.current_pos != SControl.target_pos) 
-                controller_thread(&SControl);
-            platform_toggle_status_led();
-            set_gauge_target(&SControl, 0 );
-            while (SControl.MControl.current_pos != SControl.target_pos) 
-                controller_thread(&SControl);
-            platform_toggle_status_led();
-        }
-        for (;i > 0; i-=10)
-        {
-            set_gauge_target(&SControl, (i<<4) );
-            while (SControl.MControl.current_pos != SControl.target_pos) 
-                controller_thread(&SControl);
-            platform_toggle_status_led();
-            set_gauge_target(&SControl, 0 );
-            while (SControl.MControl.current_pos != SControl.target_pos) 
-                controller_thread(&SControl);
-            platform_toggle_status_led();
-        }
+        controller_thread(&SControl);
+        input_thread(&SControl);
     }
   
     return 0;

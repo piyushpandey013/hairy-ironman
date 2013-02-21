@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "slide.h" // for ticks_t
+#include "input.h"
 
 #if !defined F_CPU
 #error "F_CPU must be defined for platform.h"
@@ -50,5 +51,7 @@ void platform_light_status_led(void);
 void platform_darken_status_led(void);
 
 void platform_init_adc(void);
+
+adc_t platform_read_adc(void);
 
 #endif

@@ -2,6 +2,7 @@
 #include <avr/io.h>
 
 #include "../slide.h" // for ticks_t
+#include "../input.h"
 
 //#include "../platform.h"
 
@@ -90,15 +91,21 @@ void usb_workaround(void)
 
 void platform_init_adc(void)
 {
-    // for now, we're going to set this to take readings from the on-chip temperature sensor
-    // because simple
+    // Set MUX to use on-chip temperature sensor
+    //ADMUX  |= (1 << MUX0) | (1 << MUX1) | (1 << MUX2);
 
-    // Set MUX to use on-chip temperature sensor 
-    ADMUX  = (1 << MUX0) | (1 << MUX1) | (1 << MUX2); 
-    ADCSRB = (1 << MUX5);   // MUX 5 bit part of ADCSRB 
+    // set ADC to use AVcc as Vref and left-shift result
+    ADMUX |= (1<<REFS1) | (1<<ADLAR); 
+    ADCSRB |= (1 << MUX5);   // MUX 5 bit part of ADCSRB 
 
     // enable the ADC, enable auto-triggering, enable the interrupt, and set the prescaler to /64
     ADCSRA |= (1<<ADEN) | (1<<ADATE) | (1<<ADIE) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
 
     // start the conversions
     ADCSRA |= (1<<ADSC);
+}
+
+adc_t platform_read_adc(void)
+{
+    return ADCH;
+}

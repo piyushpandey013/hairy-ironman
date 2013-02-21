@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 #include "input.h"
 #include "controller.h"
@@ -27,27 +28,23 @@ angle_t reading_to_angle( adc_t reading )
     return (angle_t)result;
 }
 
-void adc_interrupt_handler()
+ISR(ADC_vect)
 {
-    adc_reading = ADCW;
-    adc_changed = true;
+    adc_t new_reading = platform_read_adc();
+    if (new_reading != adc_reading)
+    {
+        adc_changed = true;
+        adc_reading = new_reading;
+    }
+    platform_toggle_status_led();
 }
 
-// One day, this will grow up to be a thread.
 void input_thread()
 {
-    /*
-    while (true)
-    {
-    */
         if (adc_changed)
         {
             adc_t buffer = adc_reading;
 
-            //set_gauge_target( &SControl, reading_to_angle( buffer ) );
-            set_gauge_target( &SControl, (buffer >> 4) ); // ADC is 12-bit, so we limit it to 8 bits so it fits nicely
+            set_gauge_target( &SControl, buffer );
         }
-    /*
-    }
-    */
 }

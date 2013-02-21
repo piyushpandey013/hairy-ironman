@@ -17,8 +17,6 @@ void init_stepper_timer()
 
 void start_stepper_timer(void)
 {
-    // note: this function is called every time we set a new destination for
-    //  the stepper; that's okay! writing successive ones has no effect.
     platform_start_stepper_timer();
 }
 
@@ -69,7 +67,6 @@ ISR(STEPPER_TIMER_INTERRUPT_vect)
     }
     advance_motor(&SControl.MControl, SControl.MControl.direction);
     set_stepper_timer_timeout( accel_delay_ticks[SControl.MControl.velocity] );
-    //controller_thread(&SControl);
 }
 
 void request_timer_interrupt(void)
