@@ -11,7 +11,7 @@ ARCH = -mmcu=$(PART)
 OBJCOPY = avr-objcopy
 PROG = avrdude
 PROGCMD = -U flash:w:$(TARGET).hex
-PROGDEV = /dev/tty.usbmodemfd121
+PROGDEV = /dev/tty.usbmodemfa131
 PROGFLAGS = -c avr109 -P $(PROGDEV) -p $(PART)
 SIMULATOR = simavr
 

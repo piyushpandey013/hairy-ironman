@@ -37,12 +37,12 @@ uint8_t num_accel_delay = 5;
 //   4 = [ 0 1 0 0 ]
 //   6 = [ 0 1 1 0 ]
 //   2 = [ 0 0 1 0 ]
-//unsigned int motorStateMap[] = { 10, 8, 9, 1, 5, 4, 6, 2 };
-//unsigned int motorStates = 8;
+uint_fast8_t motorStateMap[] = { 10, 8, 9, 1, 5, 4, 6, 2 };
+uint_fast8_t motorStates = 8;
 
 //The following is from the datasheet, and allows us to tie pins 2/3 together
-uint_fast8_t motorStateMap[] = {0x9, 0x1, 0x7, 0x6, 0xE, 0x8};
-uint_fast8_t motorStates = 6;
+//uint_fast8_t motorStateMap[] = {0x9, 0x1, 0x7, 0x6, 0xE, 0x8};
+//uint_fast8_t motorStates = 6;
 
 // Controller singletons manipulated to remember state
 struct step_controller SControl;
@@ -108,6 +108,18 @@ void controller_thread(struct step_controller* c)
 {
     if (c->needs_update == true) {
         c->needs_update = false;
+
+        switch (SControl.state)
+        {
+            case ACCELERATING:
+                SControl.MControl.velocity += 1;
+                break;
+            case DECELERATING:
+                SControl.MControl.velocity -= 1;
+                break;
+            default: // this catches state == MAX
+                break;
+        }
 
         if (c->target_pos == c->MControl.current_pos && c->MControl.velocity == 0)
         {

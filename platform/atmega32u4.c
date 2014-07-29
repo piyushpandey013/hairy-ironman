@@ -95,7 +95,7 @@ void platform_init_adc(void)
     //ADMUX  |= (1 << MUX0) | (1 << MUX1) | (1 << MUX2);
 
     // set ADC to use AVcc as Vref and left-shift result
-    ADMUX |= (1<<REFS1) | (1<<ADLAR); 
+    ADMUX |= (1<<REFS1); 
     ADCSRB |= (1 << MUX5);   // MUX 5 bit part of ADCSRB 
 
     // enable the ADC, enable auto-triggering, enable the interrupt, and set the prescaler to /64
@@ -107,5 +107,5 @@ void platform_init_adc(void)
 
 adc_t platform_read_adc(void)
 {
-    return ADCH;
+    return ADC;
 }

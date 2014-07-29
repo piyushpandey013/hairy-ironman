@@ -50,6 +50,7 @@ void set_stepper_timer_timeout_us( time_us_t timeout )
 ISR(STEPPER_TIMER_INTERRUPT_vect)
 {
     SControl.needs_update = true;
+    /*
     switch (SControl.state)
     {
         case STOPPED:
@@ -65,6 +66,9 @@ ISR(STEPPER_TIMER_INTERRUPT_vect)
         default: // this catches state == MAX
             break;
     }
+    */
+    if (SControl.state == STOPPED)
+        return;
     advance_motor(&SControl.MControl, SControl.MControl.direction);
     set_stepper_timer_timeout( accel_delay_ticks[SControl.MControl.velocity] );
 }

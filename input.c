@@ -45,6 +45,6 @@ void input_thread()
         {
             adc_t buffer = adc_reading;
 
-            set_gauge_target( &SControl, buffer );
+            set_gauge_target( &SControl, buffer<<2 );
         }
 }

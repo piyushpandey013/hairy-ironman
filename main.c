@@ -18,15 +18,35 @@ usb_workaround(); // because the arduino bootloader is a piece of shit
 
     blinky();
 
+// zero the motor
+    for (int i = 0; i < 945; i++)
+    {
+        advance_motor(&(SControl.MControl), UP);
+        _delay_us(3000);
+    }
+    SControl.MControl.current_pos = 0;
+
     initInput();
     sei();
+
 
     while (true)
     {
         controller_thread(&SControl);
         input_thread(&SControl);
     }
-  
+
+/*
+    while (true)
+    {
+        set_gauge_target(&SControl, (315<<4));
+        while (SControl.MControl.current_pos != SControl.target_pos) controller_thread(&SControl);
+        set_gauge_target(&SControl, (0));
+        while (SControl.MControl.current_pos != SControl.target_pos) controller_thread(&SControl);
+        platform_toggle_status_led();
+    }
+*/
+
     return 0;
 }
 
