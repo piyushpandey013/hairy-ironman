@@ -1,0 +1,97 @@
+eeschema (2011-05-25)-stable  >> Creation date: Tue 19 Mar 2013 09:51:06 PM PDT
+
+#Cmp ( order = Reference )
+| C1         1nF         ;             ; CGA3E2X7R1H102K080AA
+| C2         0.1uF       ;             ; C0603C104K5RACAUTO
+| C3         0.1uF       ;             
+| C4         0.1uF       ;             
+| C5         0.1uF       ;             
+| C6         0.1uF       ;             
+| C7         22pF        ;             ; C0603C220J5GACAUTO
+| C8         22pF        ;             
+| C9         0.1uF       ;             ; ceramic     
+| C10        0.1uF       ;             ; 50V         ; ceramic     
+| C11        0.1uF       ;             
+| C12        470nF       ;             ; 10V         
+| C13        0.1uF       ;             ; 16V         ; ceramic     
+| C14        560pF       ;             
+| C15        560pF       ;             
+| CP1        22uF        ;             ; T491C226K025AT
+| CP2        22uF        ;             ; T491C226K025AT
+| D1         LED         ;             
+| D2         LED         ;             
+| D3         LED         ;             
+| D4         LED         ;             
+| D5         LED         ;             
+| D6         SDM40E20LS  ;             
+| FB1        MH2029-300Y ;             
+| IC1        AT90CAN128  ; at90can128-TQFP64
+| M1         STEPPER_MOTOR;             
+| P1         CAN_HDR     ;             
+| P2         USART_HDR   ;             
+| P3         ISP_HDR     ;             
+| P4         ADC_IN      ;             
+| R1         500         ;             
+| R2         4k7         ;             
+| R3         1M          ;             
+| R4         1M          ;             
+| R5         4k7         ;             
+| R6         100         ;             ; MCR03EZPJ101
+| R7         100         ;             
+| R8         21          ;             
+| R9         21          ;             
+| RR1        100         ;             
+| U1         ZSR500GTA   ;             
+| U2         MCP2551     ;             
+| U3         A3981KLPTR-T;             
+| X1         CRYSTAL     ;             
+#End Cmp
+
+#Cmp ( order = Value )
+| 0.1uF        C2        ;             ; C0603C104K5RACAUTO
+| 0.1uF        C3        ;             
+| 0.1uF        C4        ;             
+| 0.1uF        C5        ;             
+| 0.1uF        C6        ;             
+| 0.1uF        C9        ;             ; ceramic     
+| 0.1uF        C10       ;             ; 50V         ; ceramic     
+| 0.1uF        C11       ;             
+| 0.1uF        C13       ;             ; 16V         ; ceramic     
+| 100          R6        ;             ; 541-1.0MGCT-ND
+| 100          R7        ;             
+| 100          RR1       ;             ; CAT25-101JALF
+| 1M           R3        ;             ; CRCW06031M00JNEA
+| 1M           R4        ;             
+| 1nF          C1        ;             ; CGA3E2X7R1H102K080AA
+| 21           R8        ;             ; 541-21.0HCT-ND
+| 21           R9        ;             
+| 22pF         C7        ;             ; 399-6865-1-ND
+| 22pF         C8        ;             
+| 22uF         CP1       ;             ; T491C226K025AT
+| 22uF         CP2       ;             ; T491C226K025AT
+| 470nF        C12       ;             ; 445-5672-1-ND
+| 4k7          R2        ;             ; RHM4.70KHCT-ND
+| 4k7          R5        ;             
+| 500          R1        ;             ; RHM510GCT-ND
+| 560pF        C14       ;             ; 445-5649-1-ND
+| 560pF        C15       ;             
+| A3981KLPTR-T U3        ;             
+| ADC_IN       P4        ;             
+| AT90CAN128   IC1       ; at90can128-TQFP64
+| CAN_HDR      P1        ;             
+| CRYSTAL      X1        ;             
+| ISP_HDR      P3        ;             
+| LED          D1        ;             
+| LED          D2        ;             
+| LED          D3        ;             
+| LED          D4        ;             
+| LED          D5        ;             
+| MCP2551      U2        ;             
+| MH2029-300Y  FB1       ;             
+| SDM40E20LS   D6        ;             
+| STEPPER_MOTOR M1        ;             
+| USART_HDR    P2        ;             
+| ZSR500GTA    U1        ;             
+#End Cmp
+
+#End List

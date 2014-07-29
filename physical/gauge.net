@@ -1,0 +1,480 @@
+# EESchema Netlist Version 1.1 created  Thu 21 Mar 2013 09:56:59 PM PDT
+(
+ ( /51379D0C SM0603 C1 1nF
+  ( 1 +BATT )
+  ( 2 GNDPWR )
+ )
+ ( /51379D12 SM0603 C2 0.1uF
+  ( 1 GNDPWR )
+  ( 2 +5V )
+ )
+ ( /51380D65 SM0603 C3 0.1uF
+  ( 1 N-000061 )
+  ( 2 AGND )
+ )
+ ( /51400075 SM0603 C4 0.1uF
+  ( 1 +5V )
+  ( 2 GNDPWR )
+ )
+ ( /51380D84 SM0603 C5 0.1uF
+  ( 1 N-000069 )
+  ( 2 AGND )
+ )
+ ( /514000C5 SM0603 C6 0.1uF
+  ( 1 +5V )
+  ( 2 GNDPWR )
+ )
+ ( /5138D1FB SM0603 C7 22pF
+  ( 1 GNDPWR )
+  ( 2 N-000055 )
+ )
+ ( /5138D205 SM0603 C8 22pF
+  ( 1 GNDPWR )
+  ( 2 N-000046 )
+ )
+ ( /5136EBE7 SM0603 C9 0.1uF
+  ( 1 +5V )
+  ( 2 GNDPWR )
+ )
+ ( /5136E892 SM0603 C10 0.1uF
+  ( 1 N-000026 )
+  ( 2 N-000025 )
+ )
+ ( /51382C7A SM0603 C11 0.1uF
+  ( 1 GNDPWR )
+  ( 2 +5V )
+ )
+ ( /5136E8BA SM0603 C12 470nF
+  ( 1 GNDA )
+  ( 2 N-000070 )
+ )
+ ( /5136E85A SM0603 C13 0.1uF
+  ( 1 +5V )
+  ( 2 N-000071 )
+ )
+ ( /5138355B SM0603 C14 560pF
+  ( 1 GNDPWR )
+  ( 2 N-000068 )
+ )
+ ( /51383562 SM0603 C15 560pF
+  ( 1 GNDPWR )
+  ( 2 N-000015 )
+ )
+ ( /513B9EBD SM2512 CP1 22uF
+  ( 1 +BATT )
+  ( 2 GNDPWR )
+ )
+ ( /513BA673 SM2512 CP2 22uF
+  ( 1 +5V )
+  ( 2 GNDPWR )
+ )
+ ( /514018C9 LED-0603 D1 LED
+  ( 1 N-000076 )
+  ( 2 /STATUS_LED )
+ )
+ ( /514018C5 LED-0603 D2 LED
+  ( 1 N-000080 )
+  ( 2 /NEEDLE_LED )
+ )
+ ( /5144035C LW_A673 D3 LED
+  ( 1 N-000079 )
+  ( 2 /BACKLIGHT_LED1 )
+ )
+ ( /51440360 LW_A673 D4 LED
+  ( 1 N-000077 )
+  ( 2 /BACKLIGHT_LED2 )
+ )
+ ( /514403A9 LW_A673 D5 LED
+  ( 1 N-000078 )
+  ( 2 /BACKLIGHT_LED3 )
+ )
+ ( /513AEC2F dp_devices-SOT-223 D6 SDM40E20LS
+  ( 1 GNDPWR )
+  ( 2 +5V )
+  ( 3 N-000072 )
+ )
+ ( /51380D4D dp_devices-C805 FB1 MH2029-300Y
+  ( 1 +5V )
+  ( 2 N-000061 )
+ )
+ ( /5136CEB9 TQFP64_08 IC1 AT90CAN128
+  ( 2 /USART_RX )
+  ( 3 /USART_TX )
+  ( 4 ? )
+  ( 5 ? )
+  ( 6 ? )
+  ( 7 ? )
+  ( 8 ? )
+  ( 9 ? )
+  ( 10 N-000073 )
+  ( 11 /SCK )
+  ( 12 /MOSI )
+  ( 13 /MISO )
+  ( 14 ? )
+  ( 15 ? )
+  ( 16 ? )
+  ( 17 ? )
+  ( 18 ? )
+  ( 19 ? )
+  ( 20 /RESET )
+  ( 21 +5V )
+  ( 22 GNDPWR )
+  ( 23 N-000046 )
+  ( 24 N-000055 )
+  ( 25 ? )
+  ( 26 ? )
+  ( 27 ? )
+  ( 28 ? )
+  ( 29 ? )
+  ( 30 N-000056 )
+  ( 31 N-000064 )
+  ( 32 ? )
+  ( 33 ? )
+  ( 34 ? )
+  ( 35 /NEEDLE_LED )
+  ( 36 /BACKLIGHT_LED1 )
+  ( 37 /BACKLIGHT_LED2 )
+  ( 38 /BACKLIGHT_LED3 )
+  ( 39 ? )
+  ( 40 ? )
+  ( 41 ? )
+  ( 42 ? )
+  ( 43 ? )
+  ( 44 ? )
+  ( 45 ? )
+  ( 46 ? )
+  ( 47 ? )
+  ( 48 ? )
+  ( 49 /STATUS_LED )
+  ( 50 N-000027 )
+  ( 51 /CANSPD )
+  ( 52 +5V )
+  ( 53 GNDPWR )
+  ( 54 ? )
+  ( 55 ? )
+  ( 56 ? )
+  ( 57 ? )
+  ( 58 ? )
+  ( 59 ? )
+  ( 60 ? )
+  ( 61 N-000072 )
+  ( 62 N-000069 )
+  ( 63 AGND )
+  ( 64 N-000061 )
+ )
+ ( /5136CE72 MR1107 M1 STEPPER_MOTOR
+  ( 1 N-000058 )
+  ( 3 N-000059 )
+  ( 11 N-000060 )
+  ( 13 N-000075 )
+ )
+ ( /513836E2 SIL-4 P1 CAN_HDR
+  ( 1 GNDPWR )
+  ( 2 /CANH )
+  ( 3 /CANL )
+  ( 4 +BATT )
+ )
+ ( /5138D357 PIN_ARRAY_2X2 P2 USART_HDR
+  ( 1 +5V )
+  ( 2 /USART_TX )
+  ( 3 /USART_RX )
+  ( 4 GNDPWR )
+ )
+ ( /51383959 pin_array_3x2 P3 ISP_HDR
+  ( 1 /MISO )
+  ( 2 +5V )
+  ( 3 /SCK )
+  ( 4 /MOSI )
+  ( 5 /RESET )
+  ( 6 GNDPWR )
+ )
+ ( /51382697 PINTST P4 ADC_IN
+  ( 1 N-000067 )
+ )
+ ( /513AD7BA SM0603 R1 500
+  ( 1 N-000072 )
+  ( 2 N-000067 )
+ )
+ ( /513FFAE8 SM0603 R2 4k7
+  ( 1 +5V )
+  ( 2 /RESET )
+ )
+ ( /513FFDC8 SM0603 R3 1M
+  ( 1 +5V )
+  ( 2 N-000073 )
+ )
+ ( /51400857 SM0603 R4 1M
+  ( 1 +5V )
+  ( 2 N-000027 )
+ )
+ ( /51383135 SM0603 R5 4k7
+  ( 1 /CANSPD )
+  ( 2 GNDPWR )
+ )
+ ( /5138351F SM0603 R6 100
+  ( 1 N-000068 )
+  ( 2 /CANH )
+ )
+ ( /51383529 SM0603 R7 100
+  ( 1 N-000015 )
+  ( 2 /CANL )
+ )
+ ( /51401566 SM0603 R8 21
+  ( 1 N-000086 )
+  ( 2 GNDPWR )
+ )
+ ( /5140156D SM0603 R9 21
+  ( 1 N-000087 )
+  ( 2 GNDPWR )
+ )
+ ( /51440287 CAT25-101 RR1 100
+  ( 1 N-000076 )
+  ( 2 N-000080 )
+  ( 3 N-000079 )
+  ( 4 N-000077 )
+  ( 5 N-000078 )
+  ( 6 ? )
+  ( 7 ? )
+  ( 8 ? )
+  ( 9 +5V )
+ )
+ ( /513BD7FC dp_devices-SOT-223 U1 ZSR500GTA
+  ( 1 +5V )
+  ( 2 GNDPWR )
+  ( 3 +BATT )
+ )
+ ( /51382AB9 dp_devices-SOIC-8 U2 MCP2551
+  ( 1 N-000056 )
+  ( 2 GNDPWR )
+  ( 3 +5V )
+  ( 4 N-000064 )
+  ( 5 ? )
+  ( 6 /CANL )
+  ( 7 /CANH )
+  ( 8 /CANSPD )
+ )
+ ( /5136E63F TSSOP-28-PWP U3 A3981KLPTR-T
+  ( 1 N-000087 )
+  ( 2 N-000073 )
+  ( 3 GNDPWR )
+  ( 4 N-000060 )
+  ( 5 GNDA )
+  ( 6 /MOSI )
+  ( 7 GNDA )
+  ( 8 +5V )
+  ( 9 /SCK )
+  ( 10 +5V )
+  ( 11 N-000075 )
+  ( 12 GNDPWR )
+  ( 13 GNDPWR )
+  ( 14 N-000086 )
+  ( 15 +5V )
+  ( 16 ? )
+  ( 17 /MISO )
+  ( 18 N-000059 )
+  ( 19 GNDPWR )
+  ( 20 N-000070 )
+  ( 21 GNDPWR )
+  ( 22 N-000071 )
+  ( 23 N-000025 )
+  ( 24 N-000026 )
+  ( 25 N-000058 )
+  ( 26 GNDPWR )
+  ( 27 N-000027 )
+  ( 28 +5V )
+ )
+ ( /513C1CA1 dp_devices-XTAL_4X6 X1 CRYSTAL
+  ( 1 N-000055 )
+  ( 2 N-000046 )
+ )
+)
+*
+{ Allowed footprints by component:
+$component C1
+ SM*
+ C?
+ C1-1
+$endlist
+$component C2
+ SM*
+ C?
+ C1-1
+$endlist
+$component C3
+ SM*
+ C?
+ C1-1
+$endlist
+$component C4
+ SM*
+ C?
+ C1-1
+$endlist
+$component C5
+ SM*
+ C?
+ C1-1
+$endlist
+$component C6
+ SM*
+ C?
+ C1-1
+$endlist
+$component C7
+ SM*
+ C?
+ C1-1
+$endlist
+$component C8
+ SM*
+ C?
+ C1-1
+$endlist
+$component C9
+ SM*
+ C?
+ C1-1
+$endlist
+$component C10
+ SM*
+ C?
+ C1-1
+$endlist
+$component C11
+ SM*
+ C?
+ C1-1
+$endlist
+$component C12
+ SM*
+ C?
+ C1-1
+$endlist
+$component C13
+ SM*
+ C?
+ C1-1
+$endlist
+$component C14
+ SM*
+ C?
+ C1-1
+$endlist
+$component C15
+ SM*
+ C?
+ C1-1
+$endlist
+$component CP1
+ CP*
+ SM*
+$endlist
+$component CP2
+ CP*
+ SM*
+$endlist
+$component D1
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D2
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D3
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D4
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D5
+ LED-3MM
+ LED-5MM
+ LED-10MM
+ LED-0603
+ LED-0805
+ LED-1206
+ LEDV
+$endlist
+$component D6
+ SOT-23
+ TO-236
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R4
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R5
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R6
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R7
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R8
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R9
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$endfootprintlist
+}
